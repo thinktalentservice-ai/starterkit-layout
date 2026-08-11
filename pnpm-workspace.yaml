@@ -1,0 +1,10 @@
+# pnpm reads build-script approvals from here (no longer from package.json).
+allowBuilds:
+  # esbuild ships a platform-specific binary and needs its postinstall to run.
+  esbuild: true
+  # sharp arrives transitively via next/storybook and is only used for image
+  # optimisation by a running Next server. This package builds a library and
+  # never renders an image, so its postinstall (a multi-megabyte libvips
+  # download) is pure cost. `false` records that as a decision — left unset,
+  # pnpm treats it as an unanswered question and fails every script it guards.
+  sharp: false

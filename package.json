@@ -1,0 +1,95 @@
+{
+  "name": "@devopsnext/starterkit-layout",
+  "version": "0.1.0",
+  "description": "Obsidian dashboard shell — FullLayout, Header chrome, vertical Sidebar. Token-driven, controlled, slot-based.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "files": [
+    "dist",
+    "styles.css",
+    "README.md"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./brand": {
+      "types": "./dist/brand.d.ts",
+      "import": "./dist/brand.js",
+      "require": "./dist/brand.cjs"
+    },
+    "./styles.css": "./styles.css"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc --noEmit && tsup",
+    "build-storybook": "storybook build -o docs --disable-telemetry && node -e \"require('node:fs').writeFileSync('docs/.nojekyll', '')\"",
+    "dev": "tsup --watch",
+    "storybook": "storybook dev -p 6008 --no-open --disable-telemetry",
+    "sync:tokens": "node scripts/sync-tokens.mjs",
+    "sync:tokens:check": "node scripts/sync-tokens.mjs --check",
+    "typecheck": "tsc --noEmit",
+    "typecheck:brand": "tsc --noEmit -p tsconfig.playwright.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:brand": "playwright test",
+    "verify": "pnpm typecheck && pnpm typecheck:brand && pnpm test && pnpm build"
+  },
+  "peerDependencies": {
+    "motion": ">=12",
+    "next": ">=15",
+    "react": ">=18",
+    "react-dom": ">=18",
+    "reactstrap": ">=9.2",
+    "simplebar-react": ">=3.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@storybook/addon-a11y": "^10.5.6",
+    "@storybook/addon-docs": "^10.5.6",
+    "@storybook/react-vite": "^10.5.6",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "axe-core": "^4.10.3",
+    "jsdom": "^26.1.0",
+    "lucide-react": "^1.16.0",
+    "motion": "^12.39.0",
+    "next": "16.2.6",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "reactstrap": "^9.2.3",
+    "simplebar-react": "^3.3.2",
+    "storybook": "^10.5.6",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2",
+    "vite": "^8.1.5",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "react",
+    "next",
+    "dashboard",
+    "layout",
+    "sidebar",
+    "design-system",
+    "obsidian"
+  ]
+}
