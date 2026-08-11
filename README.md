@@ -107,6 +107,33 @@ Exactly one of three kinds: `caption` → section heading; `children` → collap
 otherwise a leaf link. `icon` is usually a **class-name string** (`"bi bi-house"`) rendered as
 `<i className={icon} />`, matching what a navigation API returns; a ReactNode also works.
 
+## Brand
+
+Nothing about the brand is hard-coded. `Logo`, `LogoIcon` and `AuthLogo` all take:
+
+| Prop | |
+|---|---|
+| `brandName` | the wordmark. Defaults to the exported `DEFAULT_BRAND_NAME` placeholder — compare against it to tell "nobody set this" from "someone chose this" |
+| `mark` | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
+| `markSrc` / `markAlt` | convenience for an image mark — renders an `<img>` sized to the glyph box |
+| `size` | box size in px; radius, glyph and glow all derive from it |
+| `tagline` | `AuthLogo` only. `null` removes it |
+
+```jsx
+import { Rocket } from "lucide-react";
+
+<Logo brandName="Northwind" mark={<Rocket />} />
+<AuthLogo brandName="Northwind" markSrc="/logo.svg" tagline={null} />
+```
+
+A direct `<svg>` or `<img>` child is sized to the glyph box and inherits white, so
+`currentColor` icon sets (lucide strokes with it, MUI fills with it) and a supplied logo file
+all land correctly without you doing arithmetic against `size`. An `<img>` uses
+`object-fit: contain`, so a non-square logo fits rather than stretching.
+
+`markAlt` defaults to `""` because the wordmark beside the mark already names the brand. On
+`LogoIcon` there is no wordmark, so give it a real label.
+
 ## Token contract
 
 The package declares **nothing** on `:root`. Every token it reads is aliased onto its own scope as

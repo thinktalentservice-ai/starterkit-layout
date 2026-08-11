@@ -1,15 +1,19 @@
 "use client";
 import type { ReactNode, CSSProperties } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { BrandMark } from "./BrandMark";
+import { BrandMark, DEFAULT_BRAND_NAME } from "./BrandMark";
 
 export interface LogoProps {
   /** Collapses the wordmark to zero width. Drive it from the same state as the sidebar. */
   miniSidebar?: boolean;
   /** Wordmark. Default "Executive Insight". */
   brandName?: ReactNode;
-  /** Replaces the mark's glyph. */
+  /** Replaces the mark's glyph with any element — a lucide/MUI icon, an <svg>, an <img>. */
   mark?: ReactNode;
+  /** Convenience for an image mark: renders an <img> sized to the glyph box. */
+  markSrc?: string;
+  /** Alt text for `markSrc`. Defaults to "" (decorative — the wordmark names the brand). */
+  markAlt?: string;
   /** Mark size in px. Default 32. */
   size?: number;
   className?: string;
@@ -29,8 +33,10 @@ export interface LogoProps {
  */
 export function Logo({
   miniSidebar = false,
-  brandName = "Executive Insight",
+  brandName = DEFAULT_BRAND_NAME,
   mark,
+  markSrc,
+  markAlt,
   size = 32,
   className = "",
 }: LogoProps) {
@@ -41,7 +47,9 @@ export function Logo({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
     >
-      <BrandMark size={size}>{mark}</BrandMark>
+      <BrandMark size={size} {...(markSrc ? { src: markSrc, alt: markAlt ?? "" } : {})}>
+        {mark}
+      </BrandMark>
       <AnimatePresence>
         {!miniSidebar && (
           <motion.div

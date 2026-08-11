@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
-import { BrandMark } from "./BrandMark";
+import { BrandMark, DEFAULT_BRAND_NAME } from "./BrandMark";
 import { Logo } from "./Logo";
 import { LogoIcon } from "./LogoIcon";
 import { AuthLogo } from "./AuthLogo";
@@ -43,6 +43,47 @@ describe("BrandMark", () => {
     expect(screen.getByTestId("custom")).toBeInTheDocument();
   });
 
+  it("renders ANY element in the glyph slot and sizes it to the box", () => {
+    /* The slot takes a lucide icon, an MUI icon, a raw <svg> or an <img>. Each
+       sizes itself differently by default (lucide writes width/height attrs, MUI
+       uses 1em, an <img> uses intrinsic pixels), so the box publishes one
+       --il-mark-glyph and the stylesheet sizes direct svg/img children to it.
+       Without that the same `size` prop produced three different results. */
+    const LucideLike = (props: Record<string, unknown>) => (
+      <svg data-testid="lucide" width={24} height={24} stroke="currentColor" {...props} />
+    );
+    const { container } = render(
+      <BrandMark size={40}>
+        <LucideLike />
+      </BrandMark>,
+    );
+    const mark = container.querySelector(".il-brand-mark") as HTMLElement;
+    expect(mark.style.getPropertyValue("--il-mark-glyph")).toBe("20px");
+    expect(screen.getByTestId("lucide")).toBeInTheDocument();
+  });
+
+  it("renders an <img> mark from src, decorative by default", () => {
+    const { container } = render(<BrandMark src="/logo.png" />);
+    const img = container.querySelector("img") as HTMLImageElement;
+    expect(img).toHaveAttribute("src", "/logo.png");
+    expect(img).toHaveAttribute("alt", "");
+    // src wins over the default glyph.
+    expect(container.querySelector("svg")).not.toBeInTheDocument();
+  });
+
+  it("takes a real alt when the mark stands alone", () => {
+    render(<LogoIcon markSrc="/logo.png" markAlt="Northwind home" />);
+    expect(screen.getByAltText("Northwind home")).toBeInTheDocument();
+  });
+
+  it("default glyph strokes with currentColor so the CSS can colour it", () => {
+    /* Was stroke="white" hard-coded, which meant a consumer could not restyle it
+       and made the default glyph behave differently from every icon library. */
+    const { container } = render(<BrandMark />);
+    expect(container.querySelector("[stroke='currentColor']")).toBeInTheDocument();
+    expect(container.querySelector("[stroke='white']")).not.toBeInTheDocument();
+  });
+
   it("hides the decorative glyph from assistive tech", () => {
     const { container } = render(<BrandMark />);
     expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
@@ -63,14 +104,31 @@ describe("Logo", () => {
   it("takes brand name as a prop rather than hard-coding it", () => {
     render(<Logo brandName="Northwind" />);
     expect(screen.getByText("Northwind")).toBeInTheDocument();
-    expect(screen.queryByText("Executive Insight")).not.toBeInTheDocument();
+    expect(screen.queryByText(DEFAULT_BRAND_NAME)).not.toBeInTheDocument();
+  });
+
+  it("exposes its placeholder name as an exported constant", () => {
+    /* So a consumer can tell "nobody set this" from "someone chose this",
+       without grepping the package for a string literal. */
+    render(<Logo />);
+    expect(screen.getByText(DEFAULT_BRAND_NAME)).toBeInTheDocument();
   });
 });
 
 describe("AuthLogo", () => {
+  it("takes brandName, tagline and an element mark as props", () => {
+    render(
+      <AuthLogo brandName="Northwind" tagline="Beta" mark={<span data-testid="m" />} />,
+    );
+    expect(screen.getByText("Northwind")).toBeInTheDocument();
+    expect(screen.getByText("Beta")).toBeInTheDocument();
+    expect(screen.getByTestId("m")).toBeInTheDocument();
+    expect(screen.queryByText(DEFAULT_BRAND_NAME)).not.toBeInTheDocument();
+  });
+
   it("renders wordmark and tagline by default", () => {
     render(<AuthLogo />);
-    expect(screen.getByText("Executive Insight")).toBeInTheDocument();
+    expect(screen.getByText(DEFAULT_BRAND_NAME)).toBeInTheDocument();
     expect(screen.getByText("Enterprise")).toBeInTheDocument();
   });
 

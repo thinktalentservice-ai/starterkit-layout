@@ -477,10 +477,33 @@
   border-radius: var(--il-mark-radius, 10px);
   background: var(--il-t-gradient-secondary);
   box-shadow: 0 0 var(--il-mark-glow, 16px) rgb(var(--il-t-electric-channel) / 0.4);
+  overflow: hidden;
+  /* Sets `currentColor` for whatever glyph is dropped in. lucide-react strokes
+     with currentColor and MUI fills with it, so both land white on the gradient
+     without the caller styling anything. Literal rather than a token: this is
+     ink on a brand-coloured fill, not a themeable surface colour. */
+  color: #fff;
+  font-family: var(--il-t-font-heading);
+  font-weight: 700;
+  font-size: var(--il-mark-glyph, 16px);
+  line-height: 1;
 }
 
-.il-brand-mark svg {
+/* Size any DIRECT svg or img child to the glyph box.
+   The glyph slot takes an arbitrary element — a lucide icon, an MUI icon, an
+   inline <svg>, an <img>. Each of those sizes itself differently by default
+   (lucide writes width/height attributes, MUI uses 1em, a raw <img> uses its
+   intrinsic pixels), so without this the same `size` prop produces three
+   different results and a logo <img> can blow out of its own box entirely.
+   Direct children only, so nested marks inside a custom wrapper are left alone. */
+.il-brand-mark > svg,
+.il-brand-mark > img {
   display: block;
+  width: var(--il-mark-glyph, 16px);
+  height: var(--il-mark-glyph, 16px);
+  /* An <img> is almost never square. contain fits it without cropping or
+     distorting, which is what a supplied logo file needs. */
+  object-fit: contain;
 }
 
 .il-brand-text {

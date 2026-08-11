@@ -1,14 +1,18 @@
 "use client";
 import type { ReactNode, CSSProperties } from "react";
-import { BrandMark } from "./BrandMark";
+import { BrandMark, DEFAULT_BRAND_NAME } from "./BrandMark";
 
 export interface AuthLogoProps {
   /** Wordmark. Default "Executive Insight". */
   brandName?: ReactNode;
   /** The pill under the wordmark. Default "Enterprise". `null` removes it. */
   tagline?: ReactNode | null;
-  /** Replaces the mark's glyph. */
+  /** Replaces the mark's glyph with any element — a lucide/MUI icon, an <svg>, an <img>. */
   mark?: ReactNode;
+  /** Convenience for an image mark: renders an <img> sized to the glyph box. */
+  markSrc?: string;
+  /** Alt text for `markSrc`. Defaults to "" (decorative — the wordmark names the brand). */
+  markAlt?: string;
   /** Mark size in px. Default 48. */
   size?: number;
   className?: string;
@@ -27,15 +31,19 @@ export interface AuthLogoProps {
  * `.il-shell`, nothing else would resolve the aliases.
  */
 export function AuthLogo({
-  brandName = "Executive Insight",
+  brandName = DEFAULT_BRAND_NAME,
   tagline = "Enterprise",
   mark,
+  markSrc,
+  markAlt,
   size = 48,
   className = "",
 }: AuthLogoProps) {
   return (
     <div className={`il-brand ${className}`.trim()} style={{ gap: 12 } as CSSProperties}>
-      <BrandMark size={size}>{mark}</BrandMark>
+      <BrandMark size={size} {...(markSrc ? { src: markSrc, alt: markAlt ?? "" } : {})}>
+        {mark}
+      </BrandMark>
       <div className="il-brand-text">
         <div className="il-brand-name" style={{ "--il-brand-name-size": "22px" } as CSSProperties}>
           {brandName}

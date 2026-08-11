@@ -10,7 +10,7 @@ export { Sidebar } from "./sidebar/Sidebar";
 export { NavItemContainer } from "./sidebar/NavItemContainer";
 export { NavSubMenu } from "./sidebar/NavSubMenu";
 export { IconButton } from "./IconButton";
-export { BrandMark } from "./brand/BrandMark";
+export { BrandMark, DEFAULT_BRAND_NAME } from "./brand/BrandMark";
 export { Logo } from "./brand/Logo";
 export { LogoIcon } from "./brand/LogoIcon";
 export { AuthLogo } from "./brand/AuthLogo";

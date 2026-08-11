@@ -10,7 +10,7 @@
  * `Logo` is NOT here — it needs `motion` for its collapse animation. It is on
  * the main entry, where motion is unavoidable anyway.
  */
-export { BrandMark } from "./brand/BrandMark";
+export { BrandMark, DEFAULT_BRAND_NAME } from "./brand/BrandMark";
 export { LogoIcon } from "./brand/LogoIcon";
 export { AuthLogo } from "./brand/AuthLogo";
 
