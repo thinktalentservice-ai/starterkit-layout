@@ -45,14 +45,44 @@ const SHELL_MARKUP = `
   </div>
 `;
 
-function shellHtml(extraCssBefore?: string): string {
+/* What Sidebar.tsx renders inside the box, reduced to the parts that carry
+   geometry: the scroller wrapper that used to hold the `p-3` gutter, reactstrap's
+   `Nav vertical` (ul.nav.flex-column), and one active row.
+
+   The `ul.nav` reset is spelled out rather than inherited from Bootstrap: the UA
+   default puts 40px of padding-left on any <ul>, which would shift every row and
+   make this test measure the browser's list styling instead of the package's. The
+   host always loads Bootstrap — but BOOTSTRAP_CSS above is read from one
+   developer's absolute path and is null on any machine without it, so relying on
+   it here would make the assertion machine-dependent. */
+const NAV_RESET_CSS = `ul.nav { padding-left: 0; margin: 0; list-style: none; }`;
+
+const NAV_MARKUP = `
+  <div class="il-sidebar-nav pt-1 mt-2">
+    <ul class="nav flex-column">
+      <li>
+        <div class="nav-item il-active-link">
+          <a class="gap-3 nav-link mb-2" id="active-row" href="#"><span>My Tasks</span></a>
+        </div>
+      </li>
+    </ul>
+  </div>
+`;
+
+function shellHtml(extraCssBefore?: string, sidebarBoxInner?: string): string {
   const before = extraCssBefore ? `<style>${extraCssBefore}</style>` : "";
+  const markup = sidebarBoxInner
+    ? SHELL_MARKUP.replace(
+        `<div class="il-sidebar-box" id="sidebar-box"></div>`,
+        `<div class="il-sidebar-box" id="sidebar-box">${sidebarBoxInner}</div>`,
+      )
+    : SHELL_MARKUP;
   return (
     `<!doctype html><html><head>` +
     `<style>html, body { margin: 0; padding: 0; }</style>` +
     `${before}` +
     `<style>${STYLES_CSS}</style>` +
-    `</head><body>${SHELL_MARKUP}</body></html>`
+    `</head><body>${markup}</body></html>`
   );
 }
 
@@ -220,4 +250,78 @@ test("bootstrap-collision: the package's unlayered rules still win against a rea
 
   await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(240, 0);
   await expect.poll(async () => (await box.boundingBox())!.height).toBeCloseTo(900 - 59, 0);
+});
+
+test("full-bleed nav rows: the active row spans the sidebar edge to edge, with square corners", async ({
+  page,
+}) => {
+  /* The reported bug, pinned. `p-3` on the nav wrapper in Sidebar.tsx put a 16px
+     gutter down both sides of every row, so the active row's background and its
+     3px accent bar stopped 16px short of the sidebar's own edges. Nothing errored
+     — jsdom cannot lay this out and the 52-case vitest suite could not see it.
+     Only a real Chromium measuring two boxes can.
+
+     Tolerance is 0.5px, not toBeCloseTo(*, 0): the assertion is that the gutter
+     is GONE, not that it is small. */
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setContent(shellHtml(NAV_RESET_CSS, NAV_MARKUP));
+
+  const boxBB = (await page.locator("#sidebar-box").boundingBox())!;
+  const rowBB = (await page.locator("#active-row").boundingBox())!;
+
+  expect(Math.abs(rowBB.x - boxBB.x)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(rowBB.x + rowBB.width - (boxBB.x + boxBB.width))).toBeLessThanOrEqual(0.5);
+  expect(rowBB.width).toBeCloseTo(240, 0);
+
+  const radius = await page
+    .locator("#active-row")
+    .evaluate((el) => getComputedStyle(el).borderRadius);
+  expect(radius).toBe("0px");
+});
+
+test("full-bleed nav rows: the label keeps its 16px inset once the wrapper gutter is gone", async ({
+  page,
+}) => {
+  /* The other half of the fix, and the one a careless revert would break: the row
+     went full-bleed by moving the gutter onto .nav-link's padding, NOT by
+     deleting it. If the padding is ever dropped the row is still edge-to-edge and
+     this file's other assertion still passes, while the label sits jammed against
+     the sidebar border. */
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setContent(shellHtml(NAV_RESET_CSS, NAV_MARKUP));
+
+  const rowBB = (await page.locator("#active-row").boundingBox())!;
+  const labelBB = (await page.locator("#active-row span").boundingBox())!;
+
+  // 16px of padding, plus the 3px transparent border-left that the active state
+  // repaints as the accent bar.
+  expect(labelBB.x - rowBB.x).toBeCloseTo(19, 0);
+});
+
+test("keyboard focus is visible on a sidebar row, and its ring is drawn inside the row", async ({
+  page,
+}) => {
+  /* Before this release the package had no focus style on its primary navigation
+     at all. Real Tab focus, not element.focus(), because :focus-visible is
+     precisely the distinction between the two. `outline-offset` must stay
+     negative: on an edge-to-edge row a ring drawn outside the border box has its
+     left edge under the sidebar border and its right edge off the column. */
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setContent(shellHtml(NAV_RESET_CSS, NAV_MARKUP));
+
+  // Twice: the overlay button precedes the sidebar in SHELL_MARKUP and takes the
+  // first stop, exactly as it does in the real shell.
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Tab");
+
+  const focused = await page.evaluate(() => document.activeElement?.id);
+  expect(focused).toBe("active-row");
+
+  const outline = await page.locator("#active-row").evaluate((el) => {
+    const cs = getComputedStyle(el);
+    return { style: cs.outlineStyle, width: cs.outlineWidth, offset: cs.outlineOffset };
+  });
+  expect(outline.style).toBe("solid");
+  expect(outline.width).toBe("2px");
+  expect(parseFloat(outline.offset)).toBeLessThan(0);
 });

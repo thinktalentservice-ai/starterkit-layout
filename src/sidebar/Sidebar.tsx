@@ -114,7 +114,14 @@ export function Sidebar({
           sidebarHeader
         )}
 
-        <div className="p-3 pt-1 mt-2">
+        {/* No `p-3`. That utility put a 16px gutter down both sides of every row,
+            which is layout the package owns and Bootstrap should never have been
+            holding: it inset the active row's background and its accent bar from
+            the sidebar's own edges, so the highlight floated in the middle of the
+            column instead of reading as part of it. The gutter now lives on
+            .il-sidebar-nav in styles.css, and the row's horizontal padding moved
+            onto .nav-link — same text position, full-bleed background. */}
+        <div className="il-sidebar-nav pt-1 mt-2">
           <Nav vertical>
             {navItems.map((navi, index) => {
               const common = {

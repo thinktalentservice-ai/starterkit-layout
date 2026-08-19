@@ -610,6 +610,18 @@
   text-overflow: ellipsis;
 }
 
+/* Nav scroller wrapper. Replaces the `p-3` utility Sidebar.tsx used to carry:
+   16px of Bootstrap padding down both sides inset every row, so the active row's
+   background and its 3px accent bar stopped short of the sidebar's own edges and
+   the highlight read as a floating pill rather than as part of the column. Rows
+   are full-bleed now and the horizontal inset lives on .nav-link below, which
+   keeps the label exactly where it was. Only the bottom padding survives — it is
+   the gap under the last row, and losing it would butt the nav against the footer
+   slot. */
+.il-sidebar-nav {
+  padding: 0 0 16px;
+}
+
 /* Section caption */
 .il-nav-caption {
   font-family: var(--il-t-font-body);
@@ -618,7 +630,9 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--il-t-fg-muted);
-  padding: 5px 12px;
+  /* 16px, not 12px: the caption has to line up with the row labels, and those
+     gained 4px when the wrapper's gutter moved onto .nav-link. */
+  padding: 5px 16px;
   margin-top: 16px;
   width: 100%;
 }
@@ -629,8 +643,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--il-t-radius);
+  /* 16px of horizontal padding, which is the gutter .il-sidebar-nav gave up. The
+     label lands in the same place; the difference is that the row's own box now
+     reaches both edges of the sidebar, so background, hover wash and accent bar
+     go with it. */
+  padding: 10px 16px;
+  /* Square, deliberately. A radius on a box that touches the sidebar's right
+     border leaves two notches of sidebar background against that border, which
+     reads as a rendering fault rather than as a rounded pill. */
+  border-radius: 0;
   color: var(--il-t-fg2);
   font-family: var(--il-t-font-body);
   font-size: 0.8125rem;
@@ -658,6 +679,22 @@
   color: var(--il-t-fg1);
 }
 
+/* Keyboard focus. The package had NO focus style on its primary navigation —
+   only .il-search-input:focus existed — so a keyboard user tabbing the sidebar
+   got whatever the host's reset left behind, on a row that also sets
+   `overflow: hidden`.
+
+   `outline-offset: -2px` and not the default 0: the row is edge-to-edge now, so
+   an outline drawn outside the border box would put half its left edge under the
+   sidebar's own border and half its right edge past it. Inset, the whole ring is
+   visible. :focus-visible rather than :focus so a mouse click does not leave a
+   ring behind. */
+.il-sidebar-area .nav-link:focus-visible {
+  outline: 2px solid var(--il-t-accent);
+  outline-offset: -2px;
+  color: var(--il-t-fg1);
+}
+
 /* Active nav link (accent) */
 .il-sidebar-area .il-active-link .nav-link,
 .il-sidebar-area .nav-item.il-active-parent > .nav-link {
@@ -673,8 +710,10 @@
   transition: 0.1s ease-in;
 }
 
+/* +4px on both sides, tracking the parent row's new padding, so the child indent
+   stays the same visual step in from the label above it. */
 .il-submenu .nav-link {
-  padding: 8px 12px 8px 28px;
+  padding: 8px 16px 8px 32px;
 }
 
 .il-submenu .il-nav-icon {
@@ -805,9 +844,11 @@
    Keyed off [dir="rtl"], which the shell sets on its own root, rather than the
    source's .rtl class. */
 
-[dir="rtl"] .il-sidebar-area .nav-link {
-  padding: 12px 12px 12px 5px;
-}
+/* The RTL `.nav-link` padding override is gone. It existed to re-balance an
+   asymmetric LTR inset that no longer exists — and while doing so it also reset
+   vertical padding from 10px to 12px, making RTL rows 4px taller than LTR ones
+   for no stated reason. The LTR rule is symmetric (10px 16px), so it is already
+   correct in both directions. */
 
 [dir="rtl"] .il-topbar .il-dd-end.dropdown-menu {
   left: 0 !important;
