@@ -255,8 +255,27 @@
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Re-asserted at TWO classes, and this is not belt-and-braces — it is the fix for
+   a real regression.
+
+   These rules are deliberately unlayered so they beat unlayered global resets.
+   That works on specificity only when the package's selector is MORE specific.
+   Against a Bootstrap rule of EQUAL specificity — `.navbar` vs `.il-topbar`,
+   `.dropdown` vs `.il-mega` — the cascade falls through to source order, and a
+   host that imports Bootstrap after this sheet silently wins.
+
+   Measured, not assumed: `.il-topbar` resolved to Bootstrap's `padding: .5rem 0`
+   (left = 0 instead of 16px) and `.il-mega` to `position: relative` instead of
+   `static`. The second one is the visible one — a static mega menu takes its
+   containing block from the topbar and spans it, while a relative one anchors to
+   the 36px toggle, so a 560px panel rendered inside a 160px box and overflowed.
+
+   Every element the package renders carries both classes, so the compound
+   selector is always available and costs nothing. */
 .il-topbar.navbar {
   flex-wrap: nowrap;
+  padding: 0 16px;
+  height: var(--il-topbar-height);
 }
 
 .il-topbar.il-topbar-hidden {
@@ -428,8 +447,14 @@
   left: auto !important;
 }
 
-/* Mega dropdown */
-.il-mega {
+/* Mega dropdown.
+   `position: static` is what makes the menu span the topbar rather than the
+   toggle: an absolutely-positioned child takes its containing block from the
+   nearest POSITIONED ancestor, so leaving this at Bootstrap's `.dropdown`
+   default of `relative` anchors a full-width panel to a 36px button. Compound
+   selector for the reason given on .il-topbar.navbar above. */
+.il-mega,
+.il-mega.dropdown {
   position: static;
 }
 

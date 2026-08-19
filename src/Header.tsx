@@ -162,7 +162,15 @@ export function Header({
                     {dd.icon}
                   </DropdownToggle>
                   <DropdownMenu
-                    className={mega ? "" : `il-dd il-dd-width ${dd.align === "end" ? "il-dd-end" : ""}`.trim()}
+                    /* `il-dd` on BOTH shapes. The mega menu used to carry no class at
+                       all, inheriting Bootstrap's dropdown surface — which does not
+                       follow the colour scheme, so in light mode its 30px frame stayed
+                       dark around a light panel. Only the width class is mega-specific. */
+                    className={
+                      mega
+                        ? "il-dd"
+                        : `il-dd il-dd-width ${dd.align === "end" ? "il-dd-end" : ""}`.trim()
+                    }
                     end={dd.align === "end"}
                   >
                     {showHeader && (
