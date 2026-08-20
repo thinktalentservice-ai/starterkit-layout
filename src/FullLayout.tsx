@@ -32,6 +32,7 @@ export interface FullLayoutProps
     | "onSearch"
     | "searchPlaceholder"
     | "themeToggle"
+    | "headerActionsSlot"
     | "roleBadge"
     | "profile"
     | "headerEndSlot"

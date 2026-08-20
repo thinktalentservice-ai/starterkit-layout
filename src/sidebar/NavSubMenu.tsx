@@ -80,7 +80,7 @@ export function NavSubMenu({
         <NavLink
           tag="button"
           type="button"
-          className="il-submenu-toggle gap-3"
+          className="il-submenu-toggle"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls={panelId}
@@ -134,7 +134,7 @@ export function NavSubMenu({
           >
             <MotionLink
               href={item.href ?? "/"}
-              className="gap-3 nav-link"
+              className="nav-link"
               initial="rest"
               whileHover="hover"
               animate="rest"

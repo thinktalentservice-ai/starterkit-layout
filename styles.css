@@ -167,6 +167,43 @@
   --il-sidebar-width: 240px;
   --il-mini-sidebar-width: 80px;
   --il-topbar-height: 59px;
+
+  /* THE ICON RAIL.
+
+     One vertical line that the sidebar avatar, every nav icon and the topbar's
+     brand mark are all centred on, so the mark sits directly above the icon
+     column and the column does not move when the sidebar collapses. Its centre
+     is the mini sidebar's own midline, which is the only value that can be
+     right: in mini the icons are the ONLY thing left in the column, so anything
+     other than the midline reads as icons shoved against one edge — which is
+     exactly what this package shipped, with rows padded 16px from the left of an
+     80px column and the icons sitting 12px left of centre.
+
+     Derived here on .il-shell rather than at each use site because that is the
+     element the `geometry` prop writes --il-mini-sidebar-width onto (FullLayout
+     .tsx:144). A custom property resolves its var()s against the element it is
+     DECLARED on, so a derived value declared on :root would freeze the default
+     and silently ignore the prop; declared here it recomputes with it.
+
+     --il-label-x is where every text column starts: the rail, plus half the 32px
+     avatar, plus the 12px gap after it. The nav rows then reach the same line
+     with a wider icon gap, because an 18px icon leaves more room than a 32px
+     avatar does. Text alignment is the constant; the gaps are the slack. */
+  --il-rail-center: calc(var(--il-mini-sidebar-width) / 2);
+  --il-label-x: calc(var(--il-rail-center) + 28px);
+
+  /* How far past the sidebar's trailing edge the collapse toggle sits, in BOTH
+     states. One constant rather than two, because two would be two magic numbers
+     that drift: the toggle would clear the column by 56px collapsed and 0px open,
+     for no reason a reader could recover from the stylesheet.
+
+     Zero is not available. Once the brand mark is centred on the rail, an 80px
+     mini column has 24px of clear space after the mark against a 36px IconButton
+     — pinning to the edge there does not tighten the cluster, it puts the button
+     on top of the mark. 40px is one button width plus a 4px breath, which leaves
+     a 28px gap between mark and toggle in mini and reads as deliberate rather
+     than as chrome that ran out of room. */
+  --il-toggle-clearance: 40px;
   --il-sidebar-width-neg: calc(-1 * var(--il-sidebar-width));
 
   /* Single source of truth for how far the shell columns sit below the topbar.
@@ -279,6 +316,20 @@
   flex-wrap: nowrap;
   padding: 0 16px;
   height: var(--il-topbar-height);
+}
+
+/* reactstrap's Navbar defaults to `container="fluid"` and wraps every child in a
+   `.container-fluid`, which carries `padding-inline: calc(var(--bs-gutter-x) * .5)`.
+   That is a SECOND inset stacked on the 16px above, and its size belongs to the
+   host's Bootstrap build, not to this package — in the reference app --bs-gutter-x
+   is 1.85rem, so the topbar's contents started at 30.8px while the sidebar's own
+   `.il-sidebar-user` padding put the avatar at 16px. Nothing in this package could
+   have predicted that number, which is why the brand never lined up with the
+   avatar and why the lead cluster below has to be measured from a known origin.
+   The package declares its own inset; the container contributes none. */
+.il-topbar.navbar > .container-fluid {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .il-topbar.il-topbar-hidden {
@@ -435,9 +486,26 @@
   border-bottom: 1px solid var(--il-t-border);
 }
 
-/* Logo space */
+/* Logo space.
+   Enough padding to put the MARK'S CENTRE on the rail — not its left edge.
+
+   Matching left edges was the earlier fix here, and it was the wrong invariant.
+   A 32px mark and a 32px avatar sharing a left edge do line up, but the nav
+   icons below them are 18px, so aligning by edge leaves the mark 7px off the
+   icons it actually sits above. Centre is the only alignment that survives two
+   different glyph sizes in one column.
+
+   The subtraction spends what the layout has already committed: 16px of the
+   topbar's own padding, plus half the mark. `max()` floors it at zero so a
+   consumer passing a very narrow miniSidebarWidth gets a mark tight against the
+   topbar padding rather than one dragged out of the topbar's inset entirely.
+
+   The 32px is a literal on purpose: --il-mark-size is set ON .il-brand-mark by
+   the caller, so it does not inherit up here and reading it would resolve to the
+   fallback while implying it tracks. A consumer resizing the mark re-centres it
+   by passing miniSidebarWidth, or by re-declaring this padding. */
 .il-logo-space {
-  padding-left: 10px;
+  padding-left: max(0px, calc(var(--il-rail-center) - 16px - 16px));
 }
 
 /* Dropdown widths */
@@ -580,11 +648,14 @@
 }
 
 /* User header */
+/* User header. The avatar is centred on the rail, which is what carries the 12px
+   gap and therefore the --il-label-x that every nav label below also lands on. */
 .il-sidebar-user {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 16px;
+  padding-left: max(0px, calc(var(--il-rail-center) - 16px));
   border-bottom: 1px solid var(--il-t-border);
 }
 
@@ -633,9 +704,9 @@
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--il-t-fg-muted);
-  /* 16px, not 12px: the caption has to line up with the row labels, and those
-     gained 4px when the wrapper's gutter moved onto .nav-link. */
-  padding: 5px 16px;
+  /* The caption has to line up with the row labels, so it reads the same column
+     they do rather than restating a number that has now moved twice. */
+  padding: 5px 16px 5px var(--il-label-x);
   margin-top: 16px;
   width: 100%;
 }
@@ -645,12 +716,26 @@
 .il-sidebar-area .nav-link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  /* 16px of horizontal padding, which is the gutter .il-sidebar-nav gave up. The
-     label lands in the same place; the difference is that the row's own box now
-     reaches both edges of the sidebar, so background, hover wash and accent bar
-     go with it. */
-  padding: 10px 16px;
+  /* Whatever it takes to put the label on --il-label-x once the rail and half an
+     18px icon are spent. Wider than the avatar's 12px, and that is the point:
+     the two rows meet at the text column, not at the gap.
+
+     This declaration did nothing until the `gap-3` utility came off the three row
+     components. Bootstrap ships its utilities with !important, so `.gap-3` beat
+     this rule no matter how specific it got, and the 10px that used to sit here
+     had never once been the gap on screen — 1rem was. Anything measured against
+     the old number was measured against a value the browser discarded. */
+  gap: calc(var(--il-label-x) - var(--il-rail-center) - 9px);
+  /* Left padding lands the icon's CENTRE on the rail: the row's 3px border-left
+     and half the 18px icon are already spent, so 12px comes off the rail.
+     Because the row box spans the full column, this is also what centres the
+     icons in mini — 80px column, icon centre at 40px, no separate mini rule and
+     nothing to keep in sync. The 16px that used to sit here was measured off the
+     EXPANDED sidebar and left the mini column visibly lopsided.
+
+     Right padding stays 16px: it is the gap before the sidebar's own border, not
+     part of the rail. */
+  padding: 10px 16px 10px max(0px, calc(var(--il-rail-center) - 12px));
   /* Square, deliberately. A radius on a box that touches the sidebar's right
      border leaves two notches of sidebar background against that border, which
      reads as a rendering fault rather than as a rounded pill. */
@@ -713,10 +798,12 @@
   transition: 0.1s ease-in;
 }
 
-/* +4px on both sides, tracking the parent row's new padding, so the child indent
-   stays the same visual step in from the label above it. */
+/* One 16px step in from the parent row, measured off the rail so the step stays
+   16px whatever the geometry prop does to the column. The icon is still in flow
+   here (visibility, not display, below), so the child label lands exactly one
+   step past --il-label-x. */
 .il-submenu .nav-link {
-  padding: 8px 16px 8px 32px;
+  padding: 8px 16px 8px calc(var(--il-rail-center) + 4px);
 }
 
 .il-submenu .il-nav-icon {
@@ -785,12 +872,58 @@
 }
 
 @media (min-width: 992px) {
-  .il-logo-space {
-    min-width: 245px;
+  /* The lead cluster spans the sidebar column PLUS the toggle clearance, so the
+     collapse toggle's trailing edge lands that far past the sidebar's own edge —
+     280px by default, 120px when mini — while the brand stays on the rail.
+
+     Flush to the edge was the earlier rule here and it was too tight to read as
+     an alignment: at 240px the button's edge and the sidebar's border met exactly,
+     which looks like the toggle is hemmed in by the column rather than sitting
+     beside it. Clearing the edge by a fixed amount says the same thing about the
+     geometry and leaves the button room to breathe.
+
+     The 16px subtracted is the topbar's own padding-left, already consumed before
+     this box starts; without it the cluster would end one inset further right.
+
+     These read the geometry custom properties rather than the literals the source
+     used (245px / 60px against a 240px / 80px sidebar). Those numbers were both
+     wrong by construction AND unable to follow the `geometry` prop, so any consumer
+     resizing the sidebar silently lost the alignment.
+
+     min-width, not width: a brand name longer than the column would otherwise be
+     clipped by, or slide under, the toggle. Growing the cluster loses the edge
+     alignment for that one consumer; overlapping chrome would be the worse bug.
+
+     The toggle is pushed right by GROWING THE BRAND — see .il-logo-space below —
+     not by `space-between` here and not by `margin-left: auto` on the toggle. Both
+     of those target the wrong box. `IconButton` wraps its <button> in a motion.div,
+     so this cluster's flex children are WRAPPERS, and the mobile toggle's wrapper
+     stays in flow at lg+ (`d-lg-none` sits on the button inside it) as a zero-width
+     item at the end. space-between hands that phantom the end slot and leaves the
+     real toggle half a gap short of the edge; an auto margin on the button does
+     nothing at all, because the button is a grandchild. Growing the first item is
+     immune to both. */
+  .il-topbar-lead {
+    min-width: calc(var(--il-sidebar-width) + var(--il-toggle-clearance) - 16px);
   }
 
-  .il-is-mini .il-logo-space {
-    min-width: 60px;
+  /* Same clearance, measured off the mini column. The toggle still shifts left
+     when the sidebar collapses — it tracks the edge it is clearing — which is the
+     reference behaviour; chrome that moves is the cost of a brand mark that does
+     not. */
+  .il-is-mini .il-topbar-lead {
+    min-width: calc(var(--il-mini-sidebar-width) + var(--il-toggle-clearance) - 16px);
+  }
+
+  /* Grows to fill the cluster, which is what carries the toggle out to the
+     clearance line.
+     min-width: 0 releases the flex default of `auto` — without it a long wordmark
+     sets the floor and widens the cluster past the sidebar instead of clipping
+     inside .il-brand-wordmark. The 245px the source set here is gone for the same
+     reason: it was a second, conflicting source of truth for this column's width. */
+  .il-logo-space {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 
   .il-fixed-topbar .il-topbar {

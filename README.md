@@ -170,6 +170,20 @@ design tokens — they are absent from the token sheet. They are declared on `.i
 one-dash difference is what keeps the codegen's `--il-t-*` scraper off them. Override them on
 `.il-shell` or via the `geometry` prop.
 
+Three more are **derived** on `.il-shell` from those, and exist so the left column has one source of
+truth instead of a scatter of literals:
+
+| Custom property | Default | What it positions |
+| --- | --- | --- |
+| `--il-rail-center` | `calc(--il-mini-sidebar-width / 2)` → 40px | The icon rail. The topbar brand mark, the sidebar avatar and every nav icon are centred on this line, so the mark sits directly above the icon column and the column does not move when the sidebar collapses. |
+| `--il-label-x` | `calc(--il-rail-center + 28px)` → 68px | Where every text column starts — nav labels, section captions, the sidebar username. Rows reach it with different gaps (a 32px avatar leaves less room than an 18px icon); the text column is the constant, the gaps are the slack. |
+| `--il-toggle-clearance` | `40px` | How far past the sidebar's trailing edge the collapse toggle sits, in both states — 280px open, 120px mini. Not zero: once the mark is centred on the rail, an 80px mini column has 24px clear after it against a 36px `IconButton`, so pinning the toggle to the edge would put it on top of the mark. |
+
+They are derived on `.il-shell` and not on `:root` on purpose. A custom property resolves its `var()`s
+against the element it is **declared** on, and `.il-shell` is the element the `geometry` prop writes
+`--il-mini-sidebar-width` onto — so a derived value declared on `:root` would freeze the default and
+silently ignore the prop. Re-declare any of the three on `.il-shell` to override.
+
 ## RTL
 
 The package flips only its **own** shell geometry, keyed off `[dir="rtl"]` (which `FullLayout` sets).

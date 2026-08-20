@@ -59,7 +59,7 @@ export function NavItemContainer({
     <NavItem tag={tag} onClick={onClick} className={className}>
       <MotionLink
         href={to}
-        className="gap-3 nav-link mb-2"
+        className="nav-link mb-2"
         initial="rest"
         whileHover="hover"
         animate="rest"

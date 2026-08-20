@@ -53,6 +53,15 @@ export interface HeaderProps {
   searchPlaceholder?: string;
   /** Theme control. No default — this package has no MUI dependency. */
   themeToggle?: ReactNode;
+  /**
+   * Rendered in the right cluster, directly after the theme toggle.
+   *
+   * For an action that belongs beside the theme control rather than in the
+   * centre — a notification bell whose panel is too big for `headerDropdowns`,
+   * a help button. `headerEndSlot` is the other end of the same cluster: it
+   * renders AFTER the profile avatar.
+   */
+  headerActionsSlot?: ReactNode;
   /** A string renders inside the pill; a node replaces it. */
   roleBadge?: ReactNode;
   /** Avatar and its menu. Nothing renders when absent. */
@@ -85,6 +94,7 @@ export function Header({
   onSearch,
   searchPlaceholder = "Search",
   themeToggle,
+  headerActionsSlot,
   roleBadge,
   profile,
   headerEndSlot,
@@ -106,8 +116,12 @@ export function Header({
          so this never fires on the focused element itself. */
       inert={headerHidden || undefined}
     >
-      {/* ── Left: brand + hamburgers ── */}
-      <div className="d-flex align-items-center">
+      {/* ── Left: brand + hamburgers ──
+          `il-topbar-lead` is what lets the lg+ block in styles.css size this cluster to
+          the sidebar's own width and push the mini toggle onto its trailing edge. The
+          class carries no styling below lg, where the sidebar is a drawer and there is
+          no edge to line up with. */}
+      <div className="d-flex align-items-center il-topbar-lead">
         {brand && <div className="d-none d-lg-flex align-items-center il-logo-space">{brand}</div>}
         <IconButton
           className="d-none d-lg-flex"
@@ -188,7 +202,7 @@ export function Header({
         </Nav>
       )}
 
-      {/* ── Right: search, theme, role, profile ── */}
+      {/* ── Right: search, theme, actions, role, profile ── */}
       <div className="d-flex align-items-center gap-2 ms-auto">
         {search !== false &&
           (search ?? (
@@ -213,6 +227,12 @@ export function Header({
         {themeToggle && (
           <motion.div custom={next()} variants={variants} initial="hidden" animate="visible">
             {themeToggle}
+          </motion.div>
+        )}
+
+        {headerActionsSlot && (
+          <motion.div custom={next()} variants={variants} initial="hidden" animate="visible">
+            {headerActionsSlot}
           </motion.div>
         )}
 
