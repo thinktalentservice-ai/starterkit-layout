@@ -1,6 +1,6 @@
 {
   "name": "@devopsnext/starterkit-layout",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Obsidian dashboard shell — FullLayout, Header chrome, vertical Sidebar. Token-driven, controlled, slot-based.",
   "license": "MIT",
   "type": "module",
