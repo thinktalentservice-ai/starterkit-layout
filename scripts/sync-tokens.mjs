@@ -17,9 +17,9 @@
    Vendored defaults are resolved transitively, so a default never depends on a
    token the host might not have:
 
-       --gradient-avatar: linear-gradient(135deg, var(--mint), var(--cyan))
+       --gradient-avatar: linear-gradient(135deg, var(--gradient-avatar-from), var(--accent-solid))
      → var(--gradient-avatar, linear-gradient(135deg,
-           var(--mint, #B3D335), var(--cyan, #0ea5e9)))
+           var(--gradient-avatar-from, #8576ff), var(--accent-solid, #22d3ee)))
 
    The seed set is scraped from styles.css itself — every `--il-t-x` a rule
    mentions. Use a new token and the next run vendors it; stop using one and it

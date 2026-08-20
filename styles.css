@@ -56,31 +56,31 @@
 :is(.il-shell, .il-brand) {
   --il-t-surface-elevated: var(--surface-elevated, #161925);
   --il-t-sidebar-bg: var(--sidebar-bg, #09091a);
-  --il-t-electric: var(--electric, #8b5cf6);
-  --il-t-electric-light: var(--electric-light, #c4b5fd);
-  --il-t-accent: var(--accent, #B3D335);
-  --il-t-accent-text: var(--accent-text, #C8E05E);
-  --il-t-accent-border: var(--accent-border, rgba(179, 211, 53, 0.26));
-  --il-t-accent-fill: var(--accent-fill, rgba(179, 211, 53, 0.06));
   --il-t-fg1: var(--fg1, #f0f2ff);
   --il-t-fg2: var(--fg2, #8b93b5);
+  --il-t-primary-text: var(--primary-text, #7e79ee);
+  --il-t-primary: var(--primary, #6832ff);
+  --il-t-primary-bg: var(--primary-bg, rgba(104, 50, 255, 0.14));
+  --il-t-primary-border: var(--primary-border, rgba(104, 50, 255, 0.42));
+  --il-t-primary-channel: var(--primary-channel, 104 50 255);
+  --il-t-secondary-text: var(--secondary-text, #738296);
+  --il-t-secondary: var(--secondary, #64748b);
+  --il-t-secondary-channel: var(--secondary-channel, 100 116 139);
   --il-t-fg-muted: var(--fg-muted, rgba(255, 255, 255, 0.45));
   --il-t-border: var(--border, rgba(255, 255, 255, 0.08));
   --il-t-glass-border: var(--glass-border, rgba(255, 255, 255, 0.09));
-  --il-t-ring: var(--ring, rgba(124, 58, 237, 0.40));
+  --il-t-ring: var(--ring, rgba(104, 50, 255, 0.40));
+  --il-t-hover-overlay: var(--hover-overlay, rgba(255, 255, 255, 0.06));
+  --il-t-topbar-bg: var(--topbar-bg, rgba(7, 8, 15, 0.85));
   --il-t-radius: var(--radius, 12px);
   --il-t-radius-card: var(--radius-card, 20px);
   --il-t-radius-pill: var(--radius-pill, 9999px);
-  --il-t-topbar-bg: var(--topbar-bg, rgba(7, 8, 15, 0.85));
-  --il-t-font-heading: var(--font-heading, 'Outfit', system-ui, sans-serif);
-  --il-t-font-body: var(--font-body, 'Plus Jakarta Sans', system-ui, sans-serif);
-  --il-t-mint-channel: var(--mint-channel, 179 211 53);
-  --il-t-electric-channel: var(--electric-channel, 139 92 246);
-  --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--electric, #8b5cf6), var(--electric-deep, #6d28d9)));
-  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--cobalt-fill, #37a3fe), var(--electric-fill, #9c79ff)));
-  --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
   --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.40));
-  --il-t-hover-overlay: var(--hover-overlay, rgba(255, 255, 255, 0.06));
+  --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--secondary-solid, #64748b), var(--secondary-solid-hover, #5d6c82)));
+  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--gradient-avatar-from, #8576ff), var(--accent-solid, #22d3ee)));
+  --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
+  --il-t-font-body: var(--font-body, 'Plus Jakarta Sans', system-ui, sans-serif);
+  --il-t-font-heading: var(--font-heading, 'Outfit', system-ui, sans-serif);
 }
 
 /* Light scheme. Brand hues darken on a light surface, so the channels flip with
@@ -89,26 +89,23 @@
 [data-theme="light"] :is(.il-shell, .il-brand) {
   --il-t-surface-elevated: var(--surface-elevated, #f0f1f7);
   --il-t-sidebar-bg: var(--sidebar-bg, #eef0f8);
-  --il-t-electric: var(--electric, #7c3aed);
-  --il-t-electric-light: var(--electric-light, #a78bfa);
-  --il-t-accent: var(--accent, #8A9F2A);
-  --il-t-accent-text: var(--accent-text, #B3D335);
-  --il-t-accent-border: var(--accent-border, rgba(138, 159, 42, 0.26));
-  --il-t-accent-fill: var(--accent-fill, rgba(138, 159, 42, 0.06));
   --il-t-fg1: var(--fg1, #1a1d2e);
   --il-t-fg2: var(--fg2, #5a6080);
+  --il-t-primary-text: var(--primary-text, #260071);
+  --il-t-primary: var(--primary, #3e18a8);
+  --il-t-primary-bg: var(--primary-bg, rgba(62, 24, 168, 0.10));
+  --il-t-primary-border: var(--primary-border, rgba(62, 24, 168, 0.36));
+  --il-t-primary-channel: var(--primary-channel, 62 24 168);
+  --il-t-secondary-text: var(--secondary-text, #252d39);
+  --il-t-secondary: var(--secondary, #3e4959);
+  --il-t-secondary-channel: var(--secondary-channel, 62 73 89);
   --il-t-fg-muted: var(--fg-muted, rgba(0, 0, 0, 0.45));
   --il-t-border: var(--border, rgba(0, 0, 0, 0.14));
   --il-t-glass-border: var(--glass-border, rgba(0, 0, 0, 0.14));
-  --il-t-ring: var(--ring, rgba(124, 58, 237, 0.30));
-  --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
-  --il-t-mint-channel: var(--mint-channel, 107 125 32);
-  --il-t-electric-channel: var(--electric-channel, 124 58 237);
-  --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--electric, #7c3aed), var(--electric-deep, #5b21b6)));
-  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--cobalt-fill, #37a3fe), var(--electric-fill, #9c79ff)));
-  --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
-  --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
+  --il-t-ring: var(--ring, rgba(104, 50, 255, 0.30));
   --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
+  --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
+  --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
 }
 
 /* Same defaults for a host that ships no scheme attribute at all. Scoped to a
@@ -118,26 +115,23 @@
   :root:not([data-mui-color-scheme]):not([data-theme]) :is(.il-shell, .il-brand) {
     --il-t-surface-elevated: var(--surface-elevated, #f0f1f7);
     --il-t-sidebar-bg: var(--sidebar-bg, #eef0f8);
-    --il-t-electric: var(--electric, #7c3aed);
-    --il-t-electric-light: var(--electric-light, #a78bfa);
-    --il-t-accent: var(--accent, #8A9F2A);
-    --il-t-accent-text: var(--accent-text, #B3D335);
-    --il-t-accent-border: var(--accent-border, rgba(138, 159, 42, 0.26));
-    --il-t-accent-fill: var(--accent-fill, rgba(138, 159, 42, 0.06));
     --il-t-fg1: var(--fg1, #1a1d2e);
     --il-t-fg2: var(--fg2, #5a6080);
+    --il-t-primary-text: var(--primary-text, #260071);
+    --il-t-primary: var(--primary, #3e18a8);
+    --il-t-primary-bg: var(--primary-bg, rgba(62, 24, 168, 0.10));
+    --il-t-primary-border: var(--primary-border, rgba(62, 24, 168, 0.36));
+    --il-t-primary-channel: var(--primary-channel, 62 24 168);
+    --il-t-secondary-text: var(--secondary-text, #252d39);
+    --il-t-secondary: var(--secondary, #3e4959);
+    --il-t-secondary-channel: var(--secondary-channel, 62 73 89);
     --il-t-fg-muted: var(--fg-muted, rgba(0, 0, 0, 0.45));
     --il-t-border: var(--border, rgba(0, 0, 0, 0.14));
     --il-t-glass-border: var(--glass-border, rgba(0, 0, 0, 0.14));
-    --il-t-ring: var(--ring, rgba(124, 58, 237, 0.30));
-    --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
-    --il-t-mint-channel: var(--mint-channel, 107 125 32);
-    --il-t-electric-channel: var(--electric-channel, 124 58 237);
-    --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--electric, #7c3aed), var(--electric-deep, #5b21b6)));
-    --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--cobalt-fill, #37a3fe), var(--electric-fill, #9c79ff)));
-    --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
-    --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
+    --il-t-ring: var(--ring, rgba(104, 50, 255, 0.30));
     --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
+    --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
+    --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
   }
 }
 /* @tokens:end */
@@ -411,7 +405,7 @@
 }
 
 .il-search-input:focus {
-  border-color: var(--il-t-electric);
+  border-color: var(--il-t-secondary);
   box-shadow: 0 0 0 2px var(--il-t-ring);
 }
 
@@ -424,9 +418,9 @@
   letter-spacing: 0.12em;
   padding: 3px 10px;
   border-radius: var(--il-t-radius-pill);
-  background: var(--il-t-accent-fill);
-  color: var(--il-t-accent-text);
-  border: 1px solid var(--il-t-accent-border);
+  background: var(--il-t-primary-bg);
+  color: var(--il-t-primary-text);
+  border: 1px solid var(--il-t-primary-border);
   white-space: nowrap;
 }
 
@@ -572,7 +566,7 @@
   height: var(--il-mark-size, 32px);
   border-radius: var(--il-mark-radius, 10px);
   background: var(--il-t-gradient-secondary);
-  box-shadow: 0 0 var(--il-mark-glow, 16px) rgb(var(--il-t-electric-channel) / 0.4);
+  box-shadow: 0 0 var(--il-mark-glow, 16px) rgb(var(--il-t-secondary-channel) / 0.4);
   overflow: hidden;
   /* Sets `currentColor` for whatever glyph is dropped in. lucide-react strokes
      with currentColor and MUI fills with it, so both land white on the gradient
@@ -623,10 +617,10 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.14em;
-  color: var(--il-t-electric-light);
+  color: var(--il-t-secondary-text);
   margin-top: 3px;
-  background: rgb(var(--il-t-electric-channel) / 0.18);
-  border: 1px solid rgb(var(--il-t-electric-channel) / 0.3);
+  background: rgb(var(--il-t-secondary-channel) / 0.18);
+  border: 1px solid rgb(var(--il-t-secondary-channel) / 0.3);
   padding: 2px 8px;
   border-radius: 9999px;
   display: inline-block;
@@ -778,7 +772,7 @@
    visible. :focus-visible rather than :focus so a mouse click does not leave a
    ring behind. */
 .il-sidebar-area .nav-link:focus-visible {
-  outline: 2px solid var(--il-t-accent);
+  outline: 2px solid var(--il-t-primary);
   outline-offset: -2px;
   color: var(--il-t-fg1);
 }
@@ -786,9 +780,9 @@
 /* Active nav link (accent) */
 .il-sidebar-area .il-active-link .nav-link,
 .il-sidebar-area .nav-item.il-active-parent > .nav-link {
-  background: rgb(var(--il-t-mint-channel) / 0.10);
+  background: rgb(var(--il-t-primary-channel) / 0.10);
   color: var(--il-t-fg1);
-  border-left: 3px solid var(--il-t-accent);
+  border-left: 3px solid var(--il-t-primary);
 }
 
 /* Sub-menu */
