@@ -114,8 +114,8 @@ test.describe("vendored default token contract", () => {
   test("a transitive vendored default resolves standalone (--il-t-gradient-avatar's own var() chain)", async ({
     page,
   }) => {
-    // --il-t-gradient-avatar's fallback is itself `linear-gradient(..., var(--electric,
-    // #8b5cf6), var(--mint, #B3D335))` — a var() nested inside the vendored value of
+    // --il-t-gradient-avatar's fallback is itself `linear-gradient(..., var(--gradient-avatar-from,
+    // #8576ff), var(--accent-solid, #22d3ee))` — a var() nested inside the vendored value of
     // another var(). Proves the nested fallback also resolves with zero host tokens,
     // not just the outer one.
     await page.setContent(pageHtml({ scheme: "dark" }));
