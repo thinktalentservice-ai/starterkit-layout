@@ -77,7 +77,8 @@
   --il-t-mint-channel: var(--mint-channel, 179 211 53);
   --il-t-electric-channel: var(--electric-channel, 139 92 246);
   --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--electric, #8b5cf6), var(--electric-deep, #6d28d9)));
-  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--electric, #8b5cf6), var(--mint, #B3D335)));
+  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--cobalt-fill, #37a3fe), var(--electric-fill, #8b5cf6)));
+  --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
   --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.40));
   --il-t-hover-overlay: var(--hover-overlay, rgba(255, 255, 255, 0.06));
 }
@@ -104,7 +105,8 @@
   --il-t-mint-channel: var(--mint-channel, 107 125 32);
   --il-t-electric-channel: var(--electric-channel, 124 58 237);
   --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--electric, #7c3aed), var(--electric-deep, #5b21b6)));
-  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--electric, #7c3aed), var(--mint, #6B7D20)));
+  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--cobalt-fill, #37a3fe), var(--electric-fill, #8b5cf6)));
+  --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
   --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
   --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
 }
@@ -132,7 +134,8 @@
     --il-t-mint-channel: var(--mint-channel, 107 125 32);
     --il-t-electric-channel: var(--electric-channel, 124 58 237);
     --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--electric, #7c3aed), var(--electric-deep, #5b21b6)));
-    --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--electric, #7c3aed), var(--mint, #6B7D20)));
+    --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--cobalt-fill, #37a3fe), var(--electric-fill, #8b5cf6)));
+    --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
     --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
     --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
   }
@@ -395,7 +398,7 @@
   font-family: var(--il-t-font-heading);
   font-weight: 600;
   font-size: 12px;
-  color: white;
+  color: var(--il-t-gradient-avatar-ink, #0b0f19);
 }
 
 /* Dropdown menus. `.dropdown-menu` / `.dropdown-item` are emitted by reactstrap and
@@ -596,7 +599,7 @@
   font-family: var(--il-t-font-heading);
   font-weight: 600;
   font-size: 12px;
-  color: white;
+  color: var(--il-t-gradient-avatar-ink, #0b0f19);
   flex-shrink: 0;
 }
 
