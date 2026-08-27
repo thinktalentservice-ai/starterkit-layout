@@ -54,22 +54,23 @@
    not. Scoped to :is(.il-shell, .il-brand) — this file declares nothing on :root. */
 
 :is(.il-shell, .il-brand) {
+  --il-t-surface: var(--surface, #10121c);
   --il-t-surface-elevated: var(--surface-elevated, #161925);
   --il-t-sidebar-bg: var(--sidebar-bg, #09091a);
   --il-t-fg1: var(--fg1, #f0f2ff);
   --il-t-fg2: var(--fg2, #8b93b5);
-  --il-t-primary-text: var(--primary-text, #7e79ee);
-  --il-t-primary: var(--primary, #6832ff);
-  --il-t-primary-bg: var(--primary-bg, rgba(104, 50, 255, 0.14));
-  --il-t-primary-border: var(--primary-border, rgba(104, 50, 255, 0.42));
-  --il-t-primary-channel: var(--primary-channel, 104 50 255);
+  --il-t-primary-text: var(--primary-text, #40aaff);
+  --il-t-primary: var(--primary, #0099ff);
+  --il-t-primary-bg: var(--primary-bg, rgba(0, 153, 255, 0.14));
+  --il-t-primary-border: var(--primary-border, rgba(0, 153, 255, 0.42));
+  --il-t-primary-channel: var(--primary-channel, 0 153 255);
   --il-t-secondary-text: var(--secondary-text, #738296);
   --il-t-secondary: var(--secondary, #64748b);
   --il-t-secondary-channel: var(--secondary-channel, 100 116 139);
   --il-t-fg-muted: var(--fg-muted, rgba(255, 255, 255, 0.45));
   --il-t-border: var(--border, rgba(255, 255, 255, 0.08));
   --il-t-glass-border: var(--glass-border, rgba(255, 255, 255, 0.09));
-  --il-t-ring: var(--ring, rgba(104, 50, 255, 0.40));
+  --il-t-ring: var(--ring, rgba(0, 153, 255, 0.40));
   --il-t-hover-overlay: var(--hover-overlay, rgba(255, 255, 255, 0.06));
   --il-t-topbar-bg: var(--topbar-bg, rgba(7, 8, 15, 0.85));
   --il-t-radius: var(--radius, 12px);
@@ -77,7 +78,7 @@
   --il-t-radius-pill: var(--radius-pill, 9999px);
   --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.40));
   --il-t-gradient-secondary: var(--gradient-secondary, linear-gradient(135deg, var(--secondary-solid, #64748b), var(--secondary-solid-hover, #5d6c82)));
-  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--gradient-avatar-from, #8576ff), var(--accent-solid, #22d3ee)));
+  --il-t-gradient-avatar: var(--gradient-avatar, linear-gradient(135deg, var(--gradient-avatar-from, #0099ff), var(--primary-solid, #0099ff)));
   --il-t-gradient-avatar-ink: var(--gradient-avatar-ink, #0b0f19);
   --il-t-font-body: var(--font-body, 'Plus Jakarta Sans', system-ui, sans-serif);
   --il-t-font-heading: var(--font-heading, 'Outfit', system-ui, sans-serif);
@@ -87,22 +88,23 @@
    them: a nav-link accent drawn in the dark-surface mint lands near 1.7:1 on white. */
 [data-mui-color-scheme="light"] :is(.il-shell, .il-brand),
 [data-theme="light"] :is(.il-shell, .il-brand) {
+  --il-t-surface: var(--surface, #ffffff);
   --il-t-surface-elevated: var(--surface-elevated, #f0f1f7);
   --il-t-sidebar-bg: var(--sidebar-bg, #eef0f8);
   --il-t-fg1: var(--fg1, #1a1d2e);
   --il-t-fg2: var(--fg2, #5a6080);
-  --il-t-primary-text: var(--primary-text, #260071);
-  --il-t-primary: var(--primary, #3e18a8);
-  --il-t-primary-bg: var(--primary-bg, rgba(62, 24, 168, 0.10));
-  --il-t-primary-border: var(--primary-border, rgba(62, 24, 168, 0.36));
-  --il-t-primary-channel: var(--primary-channel, 62 24 168);
+  --il-t-primary-text: var(--primary-text, #004d83);
+  --il-t-primary: var(--primary, #006cb2);
+  --il-t-primary-bg: var(--primary-bg, rgba(0, 108, 178, 0.10));
+  --il-t-primary-border: var(--primary-border, rgba(0, 108, 178, 0.36));
+  --il-t-primary-channel: var(--primary-channel, 0 108 178);
   --il-t-secondary-text: var(--secondary-text, #252d39);
   --il-t-secondary: var(--secondary, #3e4959);
   --il-t-secondary-channel: var(--secondary-channel, 62 73 89);
   --il-t-fg-muted: var(--fg-muted, rgba(0, 0, 0, 0.45));
   --il-t-border: var(--border, rgba(0, 0, 0, 0.14));
   --il-t-glass-border: var(--glass-border, rgba(0, 0, 0, 0.14));
-  --il-t-ring: var(--ring, rgba(104, 50, 255, 0.30));
+  --il-t-ring: var(--ring, rgba(0, 153, 255, 0.30));
   --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
   --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
   --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
@@ -113,22 +115,23 @@
    light-preference machine would pick these up. */
 @media (prefers-color-scheme: light) {
   :root:not([data-mui-color-scheme]):not([data-theme]) :is(.il-shell, .il-brand) {
+    --il-t-surface: var(--surface, #ffffff);
     --il-t-surface-elevated: var(--surface-elevated, #f0f1f7);
     --il-t-sidebar-bg: var(--sidebar-bg, #eef0f8);
     --il-t-fg1: var(--fg1, #1a1d2e);
     --il-t-fg2: var(--fg2, #5a6080);
-    --il-t-primary-text: var(--primary-text, #260071);
-    --il-t-primary: var(--primary, #3e18a8);
-    --il-t-primary-bg: var(--primary-bg, rgba(62, 24, 168, 0.10));
-    --il-t-primary-border: var(--primary-border, rgba(62, 24, 168, 0.36));
-    --il-t-primary-channel: var(--primary-channel, 62 24 168);
+    --il-t-primary-text: var(--primary-text, #004d83);
+    --il-t-primary: var(--primary, #006cb2);
+    --il-t-primary-bg: var(--primary-bg, rgba(0, 108, 178, 0.10));
+    --il-t-primary-border: var(--primary-border, rgba(0, 108, 178, 0.36));
+    --il-t-primary-channel: var(--primary-channel, 0 108 178);
     --il-t-secondary-text: var(--secondary-text, #252d39);
     --il-t-secondary: var(--secondary, #3e4959);
     --il-t-secondary-channel: var(--secondary-channel, 62 73 89);
     --il-t-fg-muted: var(--fg-muted, rgba(0, 0, 0, 0.45));
     --il-t-border: var(--border, rgba(0, 0, 0, 0.14));
     --il-t-glass-border: var(--glass-border, rgba(0, 0, 0, 0.14));
-    --il-t-ring: var(--ring, rgba(104, 50, 255, 0.30));
+    --il-t-ring: var(--ring, rgba(0, 153, 255, 0.30));
     --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
     --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
     --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
@@ -225,6 +228,31 @@
      0 lets it shrink and forces wide content to scroll inside its own wrapper
      instead. */
   min-width: 0;
+
+  /* FILL THE SHELL, so a short page cannot leave a strip of the host's body
+     showing below the column.
+
+     Free while the column was transparent; load-bearing the moment it paints.
+     Below lg the shell is `d-md-block` — BLOCK layout — and a parent's
+     min-height does not propagate to a block child's auto height. Both the
+     sidebar (position: fixed, :877) and the fixed topbar (:337) are out of flow
+     there, so the column is the shell's only in-flow child and collapses to its
+     own content. Measured on a 375x1600 viewport with an empty page: shell
+     1600px, column 59px — a 1541px band of --background under the paint. At lg
+     and up the shell is flex and the column already stretches, so this is a
+     no-op there (verified by measuring with and without).
+
+     100vh, NOT 100dvh, because it has to track `.il-shell { min-height: 100vh }`
+     above. Mixing the two units puts the column short of the shell by the mobile
+     URL bar's height and hands back a thinner version of the same band.
+
+     box-sizing is declared rather than assumed: `.il-fixed-topbar.il-content-area`
+     adds padding-top, and this package emits Bootstrap utility classes without
+     depending on Bootstrap, so its global `* { box-sizing: border-box }` is a
+     prerequisite the shell must not silently rely on for a height calculation.
+     Under content-box the column would overshoot the shell by the topbar. */
+  box-sizing: border-box;
+  min-height: 100vh;
 }
 
 .il-sidebar-area {
@@ -344,6 +372,39 @@
    up 59px mid-scroll. */
 .il-fixed-topbar.il-content-area {
   padding-top: var(--il-topbar-height);
+}
+
+/* THE CONTENT COLUMN IS UNPAINTED IN DARK AND WHITE IN LIGHT — the asymmetry is
+   the point, not an oversight.
+
+   Nothing painted this column before: it was transparent, and what showed
+   through it was the host's `body { background-color: var(--background) }`. In
+   DARK that is correct — the floor (#0d0f1a) sits BELOW --surface (#10121c), so
+   cards read as raised, and an opaque column would only flatten them.
+
+   In LIGHT the relationship inverts in effect: the floor (#f6f7fb) sits below
+   --card (#ffffff), so the column reads as a grey field the white cards float
+   on. Painting the column --surface removes that field WITHOUT touching
+   --background, which the host's mesh utilities, MUI's palette.background.default
+   and Bootstrap's --bs-body-bg all still read. Repointing --background instead
+   would have moved all four at once, for a change wanted in one.
+
+   Scoped to the column and NOT to body, deliberately: body also backs the
+   sidebar gutter and the overscroll area, and zeroing it there exposes the UA
+   canvas rather than the shell.
+
+   Three selectors because a host may express light three ways — MUI's
+   attribute, a bare [data-theme], or neither plus a light OS preference. Same
+   split the generated alias block above uses; keep them in step. */
+[data-mui-color-scheme="light"] .il-content-area,
+[data-theme="light"] .il-content-area {
+  background-color: var(--il-t-surface);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-mui-color-scheme]):not([data-theme]) .il-content-area {
+    background-color: var(--il-t-surface);
+  }
 }
 
 /* ══ Header chrome ══════════════════════════════════════════════════════════ */
