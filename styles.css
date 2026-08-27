@@ -642,11 +642,18 @@
 }
 
 /* Overrides the square sizing above — same specificity, so this must stay AFTER
-   it in source order or the artwork goes back in its box. */
+   it in source order or the artwork goes back in its box.
+
+   The cap is the SAME ABSOLUTE VALUE as the parent's, deliberately, and must not
+   be written as `max-width: 100%`. A percentage resolves against the mark, whose
+   own width is `auto` and therefore depends on this element — the circularity
+   resolves to the `min-width` floor, so a 759x458 logo measured 32x32 with every
+   rule apparently applied. Measured, not reasoned: 53.0x32 once the percentage
+   is gone. */
 .il-brand-mark--bare > svg,
 .il-brand-mark--bare > img {
   width: auto;
-  max-width: 100%;
+  max-width: var(--il-mark-max-width, calc(var(--il-mark-size, 32px) * 5));
   height: var(--il-mark-glyph, 32px);
 }
 
