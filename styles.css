@@ -66,6 +66,9 @@
   --il-t-primary-channel: var(--primary-channel, 0 153 255);
   --il-t-secondary-text: var(--secondary-text, #738296);
   --il-t-secondary-channel: var(--secondary-channel, 100 116 139);
+  --il-t-danger-solid: var(--danger-solid, #f43f5e);
+  --il-t-danger-solid-hover: var(--danger-solid-hover, #e13b58);
+  --il-t-danger-on-solid: var(--danger-on-solid, #0b0f19);
   --il-t-fg-muted: var(--fg-muted, rgba(255, 255, 255, 0.45));
   --il-t-border: var(--border, rgba(255, 255, 255, 0.08));
   --il-t-glass-border: var(--glass-border, rgba(255, 255, 255, 0.09));
@@ -527,6 +530,105 @@
 .il-dd-end {
   right: 0 !important;
   left: auto !important;
+}
+
+/* Profile menu (ProfileMenu).
+   Rendered INSIDE .il-dd, so every colour here follows the scheme — the
+   fixed-light --dd-* island would put a white slab in a dark panel. */
+.il-profile {
+  font-family: var(--il-t-font-body);
+}
+
+.il-profile-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--il-t-border);
+}
+
+.il-profile-avatar {
+  flex: 0 0 auto;
+  display: block;
+  border-radius: var(--il-t-radius-pill);
+  object-fit: cover;
+  /* Shows through only while the photo decodes. */
+  background: var(--il-t-gradient-avatar);
+}
+
+.il-profile-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--il-t-font-heading);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--il-t-gradient-avatar-ink);
+  user-select: none;
+}
+
+/* `min-width: 0` is load-bearing: without it a flex item floors at its
+   content's intrinsic width and the ellipsis below never engages — the email
+   widens the whole 300px panel instead. */
+.il-profile-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.il-profile-name {
+  font-family: var(--il-t-font-heading);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--il-t-fg1);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.il-profile-email {
+  font-size: 11.5px;
+  color: var(--il-t-fg2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.il-profile-actions {
+  padding: 10px 16px 12px;
+}
+
+.il-profile-logout {
+  display: block;
+  width: 100%;
+  padding: 7px 12px;
+  border-radius: var(--il-t-radius);
+  background: var(--il-t-danger-solid);
+  color: var(--il-t-danger-on-solid);
+  font-family: var(--il-t-font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.18s ease;
+}
+
+.il-profile-logout:hover,
+.il-profile-logout:focus-visible {
+  background: var(--il-t-danger-solid-hover);
+  color: var(--il-t-danger-on-solid);
+  text-decoration: none;
+}
+
+/* An explicit ring, not just the darker hover fill. Two shades of the same red
+   is not a focus indicator — a keyboard user cannot tell "focused" from
+   "the mouse happens to be here". :focus-visible rather than :focus so a click
+   does not leave the ring behind. */
+.il-profile-logout:focus-visible {
+  outline: 2px solid var(--il-t-primary);
+  outline-offset: 2px;
 }
 
 /* Mega dropdown.

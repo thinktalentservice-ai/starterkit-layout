@@ -140,6 +140,54 @@ all land correctly without you doing arithmetic against `size`. An `<img>` uses
 `markAlt` defaults to `""` because the wordmark beside the mark already names the brand. On
 `Logo` there is no wordmark, so give it a real label.
 
+## Profile menu
+
+`ProfileMenu` is the identity block for the header's profile dropdown — photo or
+initials, name, email, and a logout link. Pass it as `profile.menu`:
+
+```jsx
+import { ProfileMenu } from "@devopsnext/starterkit-layout";
+
+<FullLayout
+  profile={{
+    initials: "AL",
+    menu: (
+      <ProfileMenu
+        name="Ada Lovelace"
+        email="ada@example.com"
+        photoSrc={photoUrl}
+        logoutHref="/auth/login"
+      />
+    ),
+  }}
+/>
+```
+
+| Prop | |
+|---|---|
+| `name` | display name. Also the source of the initials when `initials` is absent |
+| `email` | shown under the name. Capped at 30 characters AND at the panel width; the full address stays in `title` |
+| `photoSrc` | a plain URL — `https:`, `data:` or `blob:`. Absent **or failing to load** means the initials render; a later, different URL is retried |
+| `photoAlt` | defaults to `""`: the name is rendered as text beside it, so the image is decorative. Give it a real value when you supply `initials` with no `name` |
+| `initials` | overrides the two letters derived from `name` |
+| `size` | avatar diameter in px. Default 46 |
+| `logoutHref` | where logout points. **Nothing renders when absent** |
+| `logoutLabel` | default `"Logout"` |
+
+**It does not fetch the photo, and that is deliberate.** The reference host's
+photo endpoint requires a bearer token, which an `<img src>` cannot send — the
+request 401s and every user gets the placeholder. Fetch the bytes yourself and
+hand over an object URL. `initialsFrom(name)` is exported for the same reason a
+consumer might want it separately: it tolerates `""`, `null` and double spaces,
+where the obvious `split(" ")` version renders `"undefined"`.
+
+There is **no default identity**. An absent name renders empty, not "John Deo".
+
+The initials chip is `aria-hidden` **only while a name is rendered beside it** —
+then it is a duplicate reading. Supply `initials` with no `name` and it becomes
+`role="img"` with the letters as its label, because it is then the only identity
+on screen and hiding it would leave the accessibility tree with nothing.
+
 ## Token contract
 
 The package declares **nothing** on `:root`. Every token it reads is aliased onto its own scope as
