@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import axe from "axe-core";
 import { BrandMark, DEFAULT_BRAND_NAME } from "./BrandMark";
+import { Favicon } from "./Favicon";
 import { Logo } from "./Logo";
-import { LogoIcon } from "./LogoIcon";
 import { AuthLogo } from "./AuthLogo";
 
 /** axe with colour-contrast off — jsdom does no layout, so it cannot measure it. */
@@ -72,7 +72,7 @@ describe("BrandMark", () => {
   });
 
   it("takes a real alt when the mark stands alone", () => {
-    render(<LogoIcon markSrc="/logo.png" markAlt="Northwind home" />);
+    render(<Logo markSrc="/logo.png" markAlt="Northwind home" />);
     expect(screen.getByAltText("Northwind home")).toBeInTheDocument();
   });
 
@@ -84,17 +84,50 @@ describe("BrandMark", () => {
     expect(container.querySelector("[stroke='white']")).not.toBeInTheDocument();
   });
 
+  it("bare drops the box class, and the glyph fills the whole mark", () => {
+    /* A supplied favicon is the artwork. Half-size inside a gradient square is
+       someone else's logo in a box they did not ask for. */
+    const { container } = render(<BrandMark size={32} bare src="/favicon.ico" />);
+    const mark = container.querySelector(".il-brand-mark") as HTMLElement;
+    expect(mark.className).toContain("il-brand-mark--bare");
+    expect(mark.style.getPropertyValue("--il-mark-glyph")).toBe("32px");
+    // The glow blur stays half-size — it is unused while bare, but it must not
+    // silently change meaning for anyone toggling the prop.
+    expect(mark.style.getPropertyValue("--il-mark-glow")).toBe("16px");
+  });
+
+  it("is boxed by default — bare is opt-in", () => {
+    const { container } = render(<BrandMark size={32} src="/favicon.ico" />);
+    const mark = container.querySelector(".il-brand-mark") as HTMLElement;
+    expect(mark.className).not.toContain("--bare");
+    expect(mark.style.getPropertyValue("--il-mark-glyph")).toBe("16px");
+  });
+
+  it("Favicon, Logo and AuthLogo all forward bare", () => {
+    /* Three call sites, one BrandMark. A prop added to the box and forwarded by
+       two of the three is exactly the drift this asserts against. */
+    for (const el of [
+      <Favicon key="l" bare markSrc="/f.ico" />,
+      <Logo key="i" bare markSrc="/f.ico" markAlt="Home" />,
+      <AuthLogo key="a" bare markSrc="/f.ico" />,
+    ]) {
+      const { container, unmount } = render(el);
+      expect(container.querySelector(".il-brand-mark--bare")).toBeInTheDocument();
+      unmount();
+    }
+  });
+
   it("hides the decorative glyph from assistive tech", () => {
     const { container } = render(<BrandMark />);
     expect(container.querySelector("svg")).toHaveAttribute("aria-hidden", "true");
   });
 });
 
-describe("Logo", () => {
+describe("Favicon", () => {
   it("shows the wordmark expanded and hides it when mini", () => {
-    const { rerender } = render(<Logo />);
+    const { rerender } = render(<Favicon />);
     expect(screen.getByText("Executive Insight")).toBeInTheDocument();
-    rerender(<Logo miniSidebar />);
+    rerender(<Favicon miniSidebar />);
     // AnimatePresence exit is async; the element is removed from the tree on
     // the next frame. Asserting the expanded case plus the prop wiring below is
     // what jsdom can honestly cover — the collapse itself is a Playwright job.
@@ -102,7 +135,7 @@ describe("Logo", () => {
   });
 
   it("takes brand name as a prop rather than hard-coding it", () => {
-    render(<Logo brandName="Northwind" />);
+    render(<Favicon brandName="Northwind" />);
     expect(screen.getByText("Northwind")).toBeInTheDocument();
     expect(screen.queryByText(DEFAULT_BRAND_NAME)).not.toBeInTheDocument();
   });
@@ -110,7 +143,7 @@ describe("Logo", () => {
   it("exposes its placeholder name as an exported constant", () => {
     /* So a consumer can tell "nobody set this" from "someone chose this",
        without grepping the package for a string literal. */
-    render(<Logo />);
+    render(<Favicon />);
     expect(screen.getByText(DEFAULT_BRAND_NAME)).toBeInTheDocument();
   });
 });
@@ -150,9 +183,9 @@ describe("AuthLogo", () => {
   });
 });
 
-describe("LogoIcon", () => {
+describe("Logo", () => {
   it("renders a mark with no wordmark", () => {
-    render(<LogoIcon />);
+    render(<Logo />);
     expect(screen.queryByText("Executive Insight")).not.toBeInTheDocument();
     expect(document.querySelector(".il-brand-mark")).toBeInTheDocument();
   });

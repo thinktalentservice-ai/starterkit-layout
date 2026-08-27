@@ -6,8 +6,8 @@ import { Container } from "reactstrap";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./Header";
 import { Sidebar } from "./sidebar/Sidebar";
+import { Favicon } from "./brand/Favicon";
 import { Logo } from "./brand/Logo";
-import { LogoIcon } from "./brand/LogoIcon";
 import { useHeaderAutoHide } from "./hooks/useHeaderAutoHide";
 import { useIsDesktop } from "./hooks/useIsDesktop";
 import { useDrawerChrome } from "./hooks/useDrawerChrome";
@@ -63,10 +63,10 @@ export interface FullLayoutProps
   pathname?: string;
 
   /* ── brand ────────────────────────────────────────────────────────────── */
-  /** Desktop brand. Defaults to `<Logo miniSidebar={miniSidebar} />`. */
-  brand?: ReactNode;
-  /** Sub-lg brand. Defaults to `<LogoIcon />`. */
-  brandCompact?: ReactNode;
+  /** Desktop brand lockup. Defaults to `<Favicon miniSidebar={miniSidebar} />`. */
+  favicon?: ReactNode;
+  /** Sub-lg brand mark — the `/rest/client/logo/<id>` artwork. Defaults to `<Logo />`. */
+  Logo?: ReactNode;
 
   /* ── sidebar slots ────────────────────────────────────────────────────── */
   sidebarHeader?: ReactNode | null;
@@ -97,8 +97,8 @@ export function FullLayout({
   onToggleMobile,
   onCloseMobile,
   pathname,
-  brand,
-  brandCompact,
+  favicon,
+  Logo: logoSlot,
   sidebarHeader,
   sidebarUser,
   sidebarFooter,
@@ -205,8 +205,8 @@ export function FullLayout({
               {...(onToggleMini ? { onToggleMini } : {})}
               {...(onToggleMobile ? { onToggleMobile } : {})}
               mobileSidebarId={mobileSidebarId}
-              brand={brand ?? <Logo miniSidebar={miniSidebar} />}
-              brandCompact={brandCompact ?? <LogoIcon />}
+              favicon={favicon ?? <Favicon miniSidebar={miniSidebar} />}
+              Logo={logoSlot ?? <Logo />}
               {...headerSlots}
             />
             {container ? (

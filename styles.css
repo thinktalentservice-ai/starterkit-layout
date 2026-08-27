@@ -640,6 +640,21 @@
   line-height: 1;
 }
 
+/* The mark WITHOUT the brand furniture — `bare` on BrandMark/Logo/LogoIcon/AuthLogo.
+   For a supplied favicon or logo file, which already carries its own shape and
+   background: painting the gradient behind it boxes someone else's artwork and
+   shows it at half the size they supplied. Radius and overflow go too, so a
+   non-square logo is not clipped, and `color` reverts to inherit because a
+   `currentColor` glyph is no longer sitting on a brand-coloured fill — white
+   ink survives on the gradient and disappears on a light surface. */
+.il-brand-mark--bare {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  color: inherit;
+}
+
 /* Size any DIRECT svg or img child to the glyph box.
    The glyph slot takes an arbitrary element — a lucide icon, an MUI icon, an
    inline <svg>, an <img>. Each of those sizes itself differently by default

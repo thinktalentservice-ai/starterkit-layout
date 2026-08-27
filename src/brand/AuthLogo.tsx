@@ -13,6 +13,12 @@ export interface AuthLogoProps {
   markSrc?: string;
   /** Alt text for `markSrc`. Defaults to "" (decorative — the wordmark names the brand). */
   markAlt?: string;
+  /**
+   * Renders the mark as the supplied artwork alone — no gradient box, no glow,
+   * glyph at full size. Use with `markSrc` when the logo file already carries
+   * its own shape.
+   */
+  bare?: boolean;
   /** Mark size in px. Default 48. */
   size?: number;
   className?: string;
@@ -36,12 +42,13 @@ export function AuthLogo({
   mark,
   markSrc,
   markAlt,
+  bare = false,
   size = 48,
   className = "",
 }: AuthLogoProps) {
   return (
     <div className={`il-brand ${className}`.trim()} style={{ gap: 12 } as CSSProperties}>
-      <BrandMark size={size} {...(markSrc ? { src: markSrc, alt: markAlt ?? "" } : {})}>
+      <BrandMark size={size} bare={bare} {...(markSrc ? { src: markSrc, alt: markAlt ?? "" } : {})}>
         {mark}
       </BrandMark>
       <div className="il-brand-text">

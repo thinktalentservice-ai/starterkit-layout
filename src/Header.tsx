@@ -39,10 +39,10 @@ export interface HeaderProps {
   /** `aria-controls` target for the mobile hamburger. */
   mobileSidebarId?: string;
 
-  /** Desktop brand. */
-  brand?: ReactNode;
-  /** Sub-lg brand. */
-  brandCompact?: ReactNode;
+  /** Desktop brand lockup. */
+  favicon?: ReactNode;
+  /** Sub-lg brand mark. */
+  Logo?: ReactNode;
   /** Dropdowns between the hamburger and the right cluster. */
   headerDropdowns?: HeaderDropdownSlot[];
   /** Rendered after the dropdowns. */
@@ -86,8 +86,8 @@ export function Header({
   onToggleMini,
   onToggleMobile,
   mobileSidebarId = DEFAULT_MOBILE_SIDEBAR_ID,
-  brand,
-  brandCompact,
+  favicon,
+  Logo: logoSlot,
   headerDropdowns = [],
   headerCenterSlot,
   search,
@@ -122,7 +122,7 @@ export function Header({
           class carries no styling below lg, where the sidebar is a drawer and there is
           no edge to line up with. */}
       <div className="d-flex align-items-center il-topbar-lead">
-        {brand && <div className="d-none d-lg-flex align-items-center il-logo-space">{brand}</div>}
+        {favicon && <div className="d-none d-lg-flex align-items-center il-logo-space">{favicon}</div>}
         <IconButton
           className="d-none d-lg-flex"
           onClick={onToggleMini}
@@ -134,7 +134,7 @@ export function Header({
         {/* `d-block`/`d-flex`, not `d-sm-*`: the sm tier starts at 576px, so on a real
             phone (≤575px) neither utility applied and both controls fell back to whatever
             display their own CSS happened to give them. */}
-        {brandCompact && <div className="d-block d-lg-none me-2">{brandCompact}</div>}
+        {logoSlot && <div className="d-block d-lg-none me-2">{logoSlot}</div>}
         <IconButton
           className="d-flex d-lg-none"
           onClick={onToggleMobile}

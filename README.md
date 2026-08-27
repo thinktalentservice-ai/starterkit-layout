@@ -72,11 +72,11 @@ They are peers rather than dependencies because every one of them carries identi
 | Import | Contains | Runtime imports |
 |---|---|---|
 | `@devopsnext/starterkit-layout` | the shell, sidebar, header, hooks, all brand marks | the peers above |
-| `@devopsnext/starterkit-layout/brand` | `BrandMark`, `LogoIcon`, `AuthLogo` | **`react/jsx-runtime` only** |
+| `@devopsnext/starterkit-layout/brand` | `BrandMark`, `Logo`, `AuthLogo` | **`react/jsx-runtime` only** |
 | `@devopsnext/starterkit-layout/styles.css` | the entire visual definition | — |
 
 `./brand` exists so an auth page — which renders outside the dashboard shell — can show the brand
-without pulling reactstrap, simplebar and the router into that route's bundle. `Logo` is
+without pulling reactstrap, simplebar and the router into that route's bundle. `Favicon` is
 deliberately **not** there: it needs `motion` for its collapse animation.
 
 ## The package is stateless
@@ -92,7 +92,7 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
 | `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
 
-Chrome is slots — `brand`, `brandCompact`, `headerDropdowns[]`, `search`, `themeToggle`,
+Chrome is slots — `favicon`, `Logo`, `headerDropdowns[]`, `search`, `themeToggle`,
 `roleBadge`, `profile`, `headerEndSlot`, `sidebarHeader`, `sidebarUser`, `sidebarFooter`. There is
 **no** default profile menu and no default logout link; a shell package does not get to decide
 those.
@@ -109,7 +109,7 @@ otherwise a leaf link. `icon` is usually a **class-name string** (`"bi bi-house"
 
 ## Brand
 
-Nothing about the brand is hard-coded. `Logo`, `LogoIcon` and `AuthLogo` all take:
+Nothing about the brand is hard-coded. `Favicon`, `Logo` and `AuthLogo` all take:
 
 | Prop | |
 |---|---|
@@ -117,12 +117,14 @@ Nothing about the brand is hard-coded. `Logo`, `LogoIcon` and `AuthLogo` all tak
 | `mark` | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
 | `markSrc` / `markAlt` | convenience for an image mark — renders an `<img>` sized to the glyph box |
 | `size` | box size in px; radius, glyph and glow all derive from it |
+| `bare` | drops the gradient box, glow and radius, and shows the glyph at **full** size. For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork at half the size they gave you |
 | `tagline` | `AuthLogo` only. `null` removes it |
 
 ```jsx
 import { Rocket } from "lucide-react";
 
-<Logo brandName="Northwind" mark={<Rocket />} />
+<Favicon brandName="Northwind" mark={<Rocket />} />
+<Favicon brandName="Northwind" markSrc="/favicon.ico" bare />
 <AuthLogo brandName="Northwind" markSrc="/logo.svg" tagline={null} />
 ```
 
@@ -132,7 +134,7 @@ all land correctly without you doing arithmetic against `size`. An `<img>` uses
 `object-fit: contain`, so a non-square logo fits rather than stretching.
 
 `markAlt` defaults to `""` because the wordmark beside the mark already names the brand. On
-`LogoIcon` there is no wordmark, so give it a real label.
+`Logo` there is no wordmark, so give it a real label.
 
 ## Token contract
 
