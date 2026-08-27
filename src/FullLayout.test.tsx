@@ -202,11 +202,15 @@ describe("FullLayout", () => {
       expect(screen.getByRole("button", { name: "Profile" })).toBeInTheDocument();
     });
 
-    it("hides the search field when search={false}", () => {
-      const { container, rerender } = render(<FullLayout navItems={navItems} pathname="/" />);
-      expect(container.querySelector("input[type='search']")).toBeInTheDocument();
-      rerender(<FullLayout navItems={navItems} pathname="/" search={false} />);
+    it("ships NO search field of its own", () => {
+      /* There used to be one, styled and wired to an `onSearch` callback, that
+         searched nothing — a shell package has no data to search, so every
+         consumer replaced it and until they did the topbar offered a control
+         that silently did nothing. Asserted rather than merely deleted so it
+         cannot drift back in. */
+      const { container } = render(<FullLayout navItems={navItems} pathname="/" />);
       expect(container.querySelector("input[type='search']")).not.toBeInTheDocument();
+      expect(container.querySelector(".il-search")).not.toBeInTheDocument();
     });
 
     it("renders header dropdowns with their label as the accessible name", async () => {

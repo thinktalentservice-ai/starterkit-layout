@@ -92,10 +92,13 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
 | `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
 
-Chrome is slots — `favicon`, `logo`, `headerDropdowns[]`, `search`, `themeToggle`,
+Chrome is slots — `favicon`, `logo`, `headerDropdowns[]`, `themeToggle`,
 `roleBadge`, `profile`, `headerEndSlot`, `sidebarHeader`, `sidebarUser`, `sidebarFooter`. There is
-**no** default profile menu and no default logout link; a shell package does not get to decide
-those.
+**no** default profile menu and no default logout link, and **no search field** — a shell package
+does not get to decide those, and it has no data to search. The removed search input reported
+keystrokes through an `onSearch` callback and searched nothing, so every consumer replaced it and
+until they did the topbar offered a control that silently did nothing. Render your own into
+`headerCenterSlot` or `headerActionsSlot`; `SearchIcon` is still exported.
 
 ### `NavItem`
 
@@ -117,7 +120,7 @@ Nothing about the brand is hard-coded. `Favicon`, `Logo` and `AuthLogo` all take
 | `mark` | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
 | `markSrc` / `markAlt` | convenience for an image mark — renders an `<img>` sized to the glyph box |
 | `size` | box size in px; radius, glyph and glow all derive from it |
-| `bare` | drops the gradient box, glow and radius, and shows the glyph at **full** size. For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork at half the size they gave you |
+| `bare` | drops the gradient box, glow and radius, and shows the glyph at **full** size. `size` then means HEIGHT, not a box: the artwork keeps its own aspect ratio, capped at `--il-mark-max-width` (default `size × 5`). For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork and paints a 759×458 wordmark at 32×19 |
 | `tagline` | `AuthLogo` only. `null` removes it |
 
 ```jsx

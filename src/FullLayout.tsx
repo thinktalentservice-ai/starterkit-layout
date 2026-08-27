@@ -28,9 +28,6 @@ export interface FullLayoutProps
     HeaderProps,
     | "headerDropdowns"
     | "headerCenterSlot"
-    | "search"
-    | "onSearch"
-    | "searchPlaceholder"
     | "themeToggle"
     | "headerActionsSlot"
     | "roleBadge"

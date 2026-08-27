@@ -65,12 +65,10 @@
   --il-t-primary-border: var(--primary-border, rgba(0, 153, 255, 0.42));
   --il-t-primary-channel: var(--primary-channel, 0 153 255);
   --il-t-secondary-text: var(--secondary-text, #738296);
-  --il-t-secondary: var(--secondary, #64748b);
   --il-t-secondary-channel: var(--secondary-channel, 100 116 139);
   --il-t-fg-muted: var(--fg-muted, rgba(255, 255, 255, 0.45));
   --il-t-border: var(--border, rgba(255, 255, 255, 0.08));
   --il-t-glass-border: var(--glass-border, rgba(255, 255, 255, 0.09));
-  --il-t-ring: var(--ring, rgba(0, 153, 255, 0.40));
   --il-t-hover-overlay: var(--hover-overlay, rgba(255, 255, 255, 0.06));
   --il-t-topbar-bg: var(--topbar-bg, rgba(7, 8, 15, 0.85));
   --il-t-radius: var(--radius, 12px);
@@ -99,12 +97,10 @@
   --il-t-primary-border: var(--primary-border, rgba(0, 108, 178, 0.36));
   --il-t-primary-channel: var(--primary-channel, 0 108 178);
   --il-t-secondary-text: var(--secondary-text, #252d39);
-  --il-t-secondary: var(--secondary, #3e4959);
   --il-t-secondary-channel: var(--secondary-channel, 62 73 89);
   --il-t-fg-muted: var(--fg-muted, rgba(0, 0, 0, 0.45));
   --il-t-border: var(--border, rgba(0, 0, 0, 0.14));
   --il-t-glass-border: var(--glass-border, rgba(0, 0, 0, 0.14));
-  --il-t-ring: var(--ring, rgba(0, 153, 255, 0.30));
   --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
   --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
   --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
@@ -126,12 +122,10 @@
     --il-t-primary-border: var(--primary-border, rgba(0, 108, 178, 0.36));
     --il-t-primary-channel: var(--primary-channel, 0 108 178);
     --il-t-secondary-text: var(--secondary-text, #252d39);
-    --il-t-secondary: var(--secondary, #3e4959);
     --il-t-secondary-channel: var(--secondary-channel, 62 73 89);
     --il-t-fg-muted: var(--fg-muted, rgba(0, 0, 0, 0.45));
     --il-t-border: var(--border, rgba(0, 0, 0, 0.14));
     --il-t-glass-border: var(--glass-border, rgba(0, 0, 0, 0.14));
-    --il-t-ring: var(--ring, rgba(0, 153, 255, 0.30));
     --il-t-hover-overlay: var(--hover-overlay, rgba(0, 0, 0, 0.04));
     --il-t-topbar-bg: var(--topbar-bg, rgba(255, 255, 255, 0.92));
     --il-t-shadow-dropdown: var(--shadow-dropdown, 0 8px 32px rgba(0, 0, 0, 0.12));
@@ -432,44 +426,6 @@
   display: block;
 }
 
-/* Search */
-.il-search {
-  position: relative;
-}
-
-/* Was an inline `style={{ position: 'absolute', left: 12 }}` plus a
-   `color="var(--fg-muted)"` prop on the icon component. Both belong here — the
-   colour so it resolves through the alias, the position so the input's own
-   left padding and this offset live next to each other. */
-.il-search-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--il-t-fg-muted);
-  pointer-events: none;
-}
-
-.il-search-input {
-  background: var(--il-t-hover-overlay);
-  border: 1px solid var(--il-t-border);
-  border-radius: var(--il-t-radius-pill);
-  color: var(--il-t-fg1);
-  font-family: var(--il-t-font-body);
-  font-size: 13px;
-  padding: 7px 14px 7px 34px;
-  width: 180px;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.il-search-input::placeholder {
-  color: var(--il-t-fg-muted);
-}
-
-.il-search-input:focus {
-  border-color: var(--il-t-secondary);
-  box-shadow: 0 0 0 2px var(--il-t-ring);
-}
-
 /* Role badge */
 .il-role-badge {
   font-family: var(--il-t-font-body);
@@ -640,21 +596,6 @@
   line-height: 1;
 }
 
-/* The mark WITHOUT the brand furniture — `bare` on BrandMark/Logo/LogoIcon/AuthLogo.
-   For a supplied favicon or logo file, which already carries its own shape and
-   background: painting the gradient behind it boxes someone else's artwork and
-   shows it at half the size they supplied. Radius and overflow go too, so a
-   non-square logo is not clipped, and `color` reverts to inherit because a
-   `currentColor` glyph is no longer sitting on a brand-coloured fill — white
-   ink survives on the gradient and disappears on a light surface. */
-.il-brand-mark--bare {
-  background: none;
-  box-shadow: none;
-  border-radius: 0;
-  overflow: visible;
-  color: inherit;
-}
-
 /* Size any DIRECT svg or img child to the glyph box.
    The glyph slot takes an arbitrary element — a lucide icon, an MUI icon, an
    inline <svg>, an <img>. Each of those sizes itself differently by default
@@ -670,6 +611,43 @@
   /* An <img> is almost never square. contain fits it without cropping or
      distorting, which is what a supplied logo file needs. */
   object-fit: contain;
+}
+
+/* The mark WITHOUT the brand furniture — `bare` on BrandMark/Favicon/Logo/AuthLogo.
+   For a supplied favicon or logo file, which already carries its own shape and
+   background: painting the gradient behind it boxes someone else's artwork and
+   shows it at half the size they supplied. Radius and overflow go too, so a
+   non-square logo is not clipped, and `color` reverts to inherit because a
+   `currentColor` glyph is no longer sitting on a brand-coloured fill — white
+   ink survives on the gradient and disappears on a light surface. */
+.il-brand-mark--bare {
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+  color: inherit;
+  /* A bare mark is ARTWORK, not an icon, so --il-mark-size stops being a box and
+     becomes a HEIGHT: the supplied file decides the width. A wordmark logo is
+     typically ~1.7:1, and `object-fit: contain` inside a square painted it at
+     roughly 40% of the space it was given — a 759x458 logo rendered 32x19 and
+     read as a smudge.
+
+     Capped, because the aspect ratio comes from a file this package never sees:
+     an extreme one would otherwise push the rest of the topbar off-screen. The
+     cap is a variable so a consumer with a genuinely wide wordmark can raise it
+     without re-declaring the rule. */
+  width: auto;
+  min-width: var(--il-mark-size, 32px);
+  max-width: var(--il-mark-max-width, calc(var(--il-mark-size, 32px) * 5));
+}
+
+/* Overrides the square sizing above — same specificity, so this must stay AFTER
+   it in source order or the artwork goes back in its box. */
+.il-brand-mark--bare > svg,
+.il-brand-mark--bare > img {
+  width: auto;
+  max-width: 100%;
+  height: var(--il-mark-glyph, 32px);
 }
 
 .il-brand-text {
@@ -837,10 +815,10 @@
   color: var(--il-t-fg1);
 }
 
-/* Keyboard focus. The package had NO focus style on its primary navigation —
-   only .il-search-input:focus existed — so a keyboard user tabbing the sidebar
-   got whatever the host's reset left behind, on a row that also sets
-   `overflow: hidden`.
+/* Keyboard focus. The package had NO focus style on its primary navigation — the
+   only :focus rule in the whole sheet was on the search input that has since been
+   removed — so a keyboard user tabbing the sidebar got whatever the host's reset
+   left behind, on a row that also sets `overflow: hidden`.
 
    `outline-offset: -2px` and not the default 0: the row is edge-to-edge now, so
    an outline drawn outside the border box would put half its left edge under the
