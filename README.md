@@ -92,7 +92,7 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
 | `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
 
-Chrome is slots — `favicon`, `Logo`, `headerDropdowns[]`, `search`, `themeToggle`,
+Chrome is slots — `favicon`, `logo`, `headerDropdowns[]`, `search`, `themeToggle`,
 `roleBadge`, `profile`, `headerEndSlot`, `sidebarHeader`, `sidebarUser`, `sidebarFooter`. There is
 **no** default profile menu and no default logout link; a shell package does not get to decide
 those.

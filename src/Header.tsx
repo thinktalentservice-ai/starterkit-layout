@@ -42,7 +42,7 @@ export interface HeaderProps {
   /** Desktop brand lockup. */
   favicon?: ReactNode;
   /** Sub-lg brand mark. */
-  Logo?: ReactNode;
+  logo?: ReactNode;
   /** Dropdowns between the hamburger and the right cluster. */
   headerDropdowns?: HeaderDropdownSlot[];
   /** Rendered after the dropdowns. */
@@ -87,7 +87,7 @@ export function Header({
   onToggleMobile,
   mobileSidebarId = DEFAULT_MOBILE_SIDEBAR_ID,
   favicon,
-  Logo: logoSlot,
+  logo,
   headerDropdowns = [],
   headerCenterSlot,
   search,
@@ -134,7 +134,7 @@ export function Header({
         {/* `d-block`/`d-flex`, not `d-sm-*`: the sm tier starts at 576px, so on a real
             phone (≤575px) neither utility applied and both controls fell back to whatever
             display their own CSS happened to give them. */}
-        {logoSlot && <div className="d-block d-lg-none me-2">{logoSlot}</div>}
+        {logo && <div className="d-block d-lg-none me-2">{logo}</div>}
         <IconButton
           className="d-flex d-lg-none"
           onClick={onToggleMobile}

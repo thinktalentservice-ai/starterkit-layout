@@ -66,7 +66,7 @@ export interface FullLayoutProps
   /** Desktop brand lockup. Defaults to `<Favicon miniSidebar={miniSidebar} />`. */
   favicon?: ReactNode;
   /** Sub-lg brand mark — the `/rest/client/logo/<id>` artwork. Defaults to `<Logo />`. */
-  Logo?: ReactNode;
+  logo?: ReactNode;
 
   /* ── sidebar slots ────────────────────────────────────────────────────── */
   sidebarHeader?: ReactNode | null;
@@ -98,7 +98,7 @@ export function FullLayout({
   onCloseMobile,
   pathname,
   favicon,
-  Logo: logoSlot,
+  logo,
   sidebarHeader,
   sidebarUser,
   sidebarFooter,
@@ -206,7 +206,7 @@ export function FullLayout({
               {...(onToggleMobile ? { onToggleMobile } : {})}
               mobileSidebarId={mobileSidebarId}
               favicon={favicon ?? <Favicon miniSidebar={miniSidebar} />}
-              Logo={logoSlot ?? <Logo />}
+              logo={logo ?? <Logo />}
               {...headerSlots}
             />
             {container ? (
