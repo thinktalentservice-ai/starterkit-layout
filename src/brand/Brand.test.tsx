@@ -140,6 +140,25 @@ describe("Favicon", () => {
     expect(screen.queryByText(DEFAULT_BRAND_NAME)).not.toBeInTheDocument();
   });
 
+  it("renders the wordmark as an image when wordmarkSrc is set, alt from brandName", () => {
+    /* The wordmark image IS the brand name, unlike the mark beside it, so
+       leaving it decorative would strip the only text identifying the brand. */
+    const { container } = render(<Favicon brandName="Northwind" wordmarkSrc="/logo.png" />);
+    const img = container.querySelector(".il-brand-wordmark-img") as HTMLImageElement;
+    expect(img).toHaveAttribute("src", "/logo.png");
+    expect(img).toHaveAttribute("alt", "Northwind");
+    expect(screen.queryByText("Northwind")).not.toBeInTheDocument();
+  });
+
+  it("keeps the mark and the wordmark as independent sources", () => {
+    /* Two endpoints, two props. Setting one must not change the other. */
+    const { container } = render(
+      <Favicon markSrc="/favicon.ico" wordmarkSrc="/logo.png" bare />,
+    );
+    const srcs = [...container.querySelectorAll("img")].map((i) => i.getAttribute("src"));
+    expect(srcs).toEqual(["/favicon.ico", "/logo.png"]);
+  });
+
   it("exposes its placeholder name as an exported constant", () => {
     /* So a consumer can tell "nobody set this" from "someone chose this",
        without grepping the package for a string literal. */

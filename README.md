@@ -119,6 +119,7 @@ Nothing about the brand is hard-coded. `Favicon`, `Logo` and `AuthLogo` all take
 | `brandName` | the wordmark. Defaults to the exported `DEFAULT_BRAND_NAME` placeholder — compare against it to tell "nobody set this" from "someone chose this" |
 | `mark` | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
 | `markSrc` / `markAlt` | convenience for an image mark — renders an `<img>` sized to the glyph box |
+| `wordmarkSrc` / `wordmarkAlt` | `Favicon` only. Renders the wordmark as an IMAGE instead of `brandName` text — a supplied logo file. Independent of `markSrc`: a tenant usually has a favicon-shaped mark AND a full logo at two different endpoints. Height-driven via `--il-brand-wordmark-height` (32px), capped by `--il-brand-wordmark-max-width` (180px). `wordmarkAlt` defaults to `brandName` — the image is the only thing naming the brand |
 | `size` | box size in px; radius, glyph and glow all derive from it |
 | `bare` | drops the gradient box, glow and radius, and shows the glyph at **full** size. `size` then means HEIGHT, not a box: the artwork keeps its own aspect ratio, capped at `--il-mark-max-width` (default `size × 5`). For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork and paints a 759×458 wordmark at 32×19 |
 | `tagline` | `AuthLogo` only. `null` removes it |
