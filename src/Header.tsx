@@ -1,5 +1,5 @@
 "use client";
-import type { ReactNode, ChangeEvent } from "react";
+import type { ReactNode } from "react";
 import {
   Navbar,
   Nav,
@@ -11,7 +11,7 @@ import {
 import SimpleBar from "simplebar-react";
 import { motion } from "motion/react";
 import { IconButton } from "./IconButton";
-import { MenuIcon, SearchIcon } from "./icons";
+import { MenuIcon } from "./icons";
 import { DEFAULT_MOBILE_SIDEBAR_ID, DEFAULT_DROPDOWN_SCROLL_HEIGHT } from "./constants";
 import type { HeaderDropdownSlot, ProfileSlot } from "./types";
 
@@ -39,18 +39,22 @@ export interface HeaderProps {
   /** `aria-controls` target for the mobile hamburger. */
   mobileSidebarId?: string;
 
-  /** Desktop brand. */
-  brand?: ReactNode;
-  /** Sub-lg brand. */
-  brandCompact?: ReactNode;
+  /** Desktop brand lockup. */
+  favicon?: ReactNode;
+  /** Sub-lg brand mark. */
+  logo?: ReactNode;
   /** Dropdowns between the hamburger and the right cluster. */
   headerDropdowns?: HeaderDropdownSlot[];
   /** Rendered after the dropdowns. */
   headerCenterSlot?: ReactNode;
-  /** `false` hides the search field; a node replaces it wholesale. */
-  search?: ReactNode | false;
-  onSearch?: (value: string) => void;
-  searchPlaceholder?: string;
+  /*
+   * There is no `search` slot. The package used to ship a styled <input
+   * type="search"> that reported keystrokes through `onSearch` and searched
+   * NOTHING — every consumer had to replace it, and until they did the topbar
+   * offered a control that silently did nothing. A shell package has no data to
+   * search. Render your own into `headerCenterSlot` or `headerActionsSlot`;
+   * `SearchIcon` is still exported for it.
+   */
   /** Theme control. No default — this package has no MUI dependency. */
   themeToggle?: ReactNode;
   /**
@@ -86,13 +90,10 @@ export function Header({
   onToggleMini,
   onToggleMobile,
   mobileSidebarId = DEFAULT_MOBILE_SIDEBAR_ID,
-  brand,
-  brandCompact,
+  favicon,
+  logo,
   headerDropdowns = [],
   headerCenterSlot,
-  search,
-  onSearch,
-  searchPlaceholder = "Search",
   themeToggle,
   headerActionsSlot,
   roleBadge,
@@ -122,7 +123,7 @@ export function Header({
           class carries no styling below lg, where the sidebar is a drawer and there is
           no edge to line up with. */}
       <div className="d-flex align-items-center il-topbar-lead">
-        {brand && <div className="d-none d-lg-flex align-items-center il-logo-space">{brand}</div>}
+        {favicon && <div className="d-none d-lg-flex align-items-center il-logo-space">{favicon}</div>}
         <IconButton
           className="d-none d-lg-flex"
           onClick={onToggleMini}
@@ -134,7 +135,7 @@ export function Header({
         {/* `d-block`/`d-flex`, not `d-sm-*`: the sm tier starts at 576px, so on a real
             phone (≤575px) neither utility applied and both controls fell back to whatever
             display their own CSS happened to give them. */}
-        {brandCompact && <div className="d-block d-lg-none me-2">{brandCompact}</div>}
+        {logo && <div className="d-block d-lg-none me-2">{logo}</div>}
         <IconButton
           className="d-flex d-lg-none"
           onClick={onToggleMobile}
@@ -202,28 +203,8 @@ export function Header({
         </Nav>
       )}
 
-      {/* ── Right: search, theme, actions, role, profile ── */}
+      {/* ── Right: theme, actions, role, profile ── */}
       <div className="d-flex align-items-center gap-2 ms-auto">
-        {search !== false &&
-          (search ?? (
-            <motion.div
-              custom={next()}
-              variants={variants}
-              initial="hidden"
-              animate="visible"
-              className="d-md-flex d-none align-items-center il-search"
-            >
-              <SearchIcon className="il-search-icon" />
-              <input
-                type="search"
-                placeholder={searchPlaceholder}
-                aria-label={searchPlaceholder}
-                className="il-search-input"
-                onChange={onSearch ? (e: ChangeEvent<HTMLInputElement>) => onSearch(e.target.value) : undefined}
-              />
-            </motion.div>
-          ))}
-
         {themeToggle && (
           <motion.div custom={next()} variants={variants} initial="hidden" animate="visible">
             {themeToggle}

@@ -72,11 +72,11 @@ They are peers rather than dependencies because every one of them carries identi
 | Import | Contains | Runtime imports |
 |---|---|---|
 | `@devopsnext/starterkit-layout` | the shell, sidebar, header, hooks, all brand marks | the peers above |
-| `@devopsnext/starterkit-layout/brand` | `BrandMark`, `LogoIcon`, `AuthLogo` | **`react/jsx-runtime` only** |
+| `@devopsnext/starterkit-layout/brand` | `BrandMark`, `Logo`, `AuthLogo` | **`react/jsx-runtime` only** |
 | `@devopsnext/starterkit-layout/styles.css` | the entire visual definition | — |
 
 `./brand` exists so an auth page — which renders outside the dashboard shell — can show the brand
-without pulling reactstrap, simplebar and the router into that route's bundle. `Logo` is
+without pulling reactstrap, simplebar and the router into that route's bundle. `Favicon` is
 deliberately **not** there: it needs `motion` for its collapse animation.
 
 ## The package is stateless
@@ -92,10 +92,13 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
 | `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
 
-Chrome is slots — `brand`, `brandCompact`, `headerDropdowns[]`, `search`, `themeToggle`,
+Chrome is slots — `favicon`, `logo`, `headerDropdowns[]`, `themeToggle`,
 `roleBadge`, `profile`, `headerEndSlot`, `sidebarHeader`, `sidebarUser`, `sidebarFooter`. There is
-**no** default profile menu and no default logout link; a shell package does not get to decide
-those.
+**no** default profile menu and no default logout link, and **no search field** — a shell package
+does not get to decide those, and it has no data to search. The removed search input reported
+keystrokes through an `onSearch` callback and searched nothing, so every consumer replaced it and
+until they did the topbar offered a control that silently did nothing. Render your own into
+`headerCenterSlot` or `headerActionsSlot`; `SearchIcon` is still exported.
 
 ### `NavItem`
 
@@ -109,20 +112,23 @@ otherwise a leaf link. `icon` is usually a **class-name string** (`"bi bi-house"
 
 ## Brand
 
-Nothing about the brand is hard-coded. `Logo`, `LogoIcon` and `AuthLogo` all take:
+Nothing about the brand is hard-coded. `Favicon`, `Logo` and `AuthLogo` all take:
 
 | Prop | |
 |---|---|
 | `brandName` | the wordmark. Defaults to the exported `DEFAULT_BRAND_NAME` placeholder — compare against it to tell "nobody set this" from "someone chose this" |
 | `mark` | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
 | `markSrc` / `markAlt` | convenience for an image mark — renders an `<img>` sized to the glyph box |
+| `wordmarkSrc` / `wordmarkAlt` | `Favicon` only. Renders the wordmark as an IMAGE instead of `brandName` text — a supplied logo file. Independent of `markSrc`: a tenant usually has a favicon-shaped mark AND a full logo at two different endpoints. Height-driven via `--il-brand-wordmark-height` (32px), capped by `--il-brand-wordmark-max-width` (180px). `wordmarkAlt` defaults to `brandName` — the image is the only thing naming the brand |
 | `size` | box size in px; radius, glyph and glow all derive from it |
+| `bare` | drops the gradient box, glow and radius, and shows the glyph at **full** size. `size` then means HEIGHT, not a box: the artwork keeps its own aspect ratio, capped at `--il-mark-max-width` (default `size × 5`). For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork and paints a 759×458 wordmark at 32×19 |
 | `tagline` | `AuthLogo` only. `null` removes it |
 
 ```jsx
 import { Rocket } from "lucide-react";
 
-<Logo brandName="Northwind" mark={<Rocket />} />
+<Favicon brandName="Northwind" mark={<Rocket />} />
+<Favicon brandName="Northwind" markSrc="/favicon.ico" bare />
 <AuthLogo brandName="Northwind" markSrc="/logo.svg" tagline={null} />
 ```
 
@@ -132,7 +138,7 @@ all land correctly without you doing arithmetic against `size`. An `<img>` uses
 `object-fit: contain`, so a non-square logo fits rather than stretching.
 
 `markAlt` defaults to `""` because the wordmark beside the mark already names the brand. On
-`LogoIcon` there is no wordmark, so give it a real label.
+`Logo` there is no wordmark, so give it a real label.
 
 ## Token contract
 

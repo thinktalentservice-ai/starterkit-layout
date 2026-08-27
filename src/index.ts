@@ -11,8 +11,8 @@ export { NavItemContainer } from "./sidebar/NavItemContainer";
 export { NavSubMenu } from "./sidebar/NavSubMenu";
 export { IconButton } from "./IconButton";
 export { BrandMark, DEFAULT_BRAND_NAME } from "./brand/BrandMark";
+export { Favicon } from "./brand/Favicon";
 export { Logo } from "./brand/Logo";
-export { LogoIcon } from "./brand/LogoIcon";
 export { AuthLogo } from "./brand/AuthLogo";
 
 export { useHeaderAutoHide } from "./hooks/useHeaderAutoHide";
@@ -28,8 +28,8 @@ export type { NavItemContainerProps } from "./sidebar/NavItemContainer";
 export type { NavSubMenuProps } from "./sidebar/NavSubMenu";
 export type { IconButtonProps } from "./IconButton";
 export type { BrandMarkProps } from "./brand/BrandMark";
+export type { FaviconProps } from "./brand/Favicon";
 export type { LogoProps } from "./brand/Logo";
-export type { LogoIconProps } from "./brand/LogoIcon";
 export type { AuthLogoProps } from "./brand/AuthLogo";
 export type {
   NavItem,
