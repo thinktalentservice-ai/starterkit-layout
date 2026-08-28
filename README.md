@@ -47,7 +47,16 @@ Load Outfit and Plus Jakarta Sans yourself (`next/font` is self-hosted and CSP-s
 
 ## Peer dependencies
 
-`react`, `react-dom`, `next`, `reactstrap`, `motion`, `simplebar-react`. `dependencies` is empty.
+`react`, `react-dom`, `reactstrap`, `motion`, `simplebar-react`. `dependencies` is empty.
+
+There is **no framework peer**. Nav rows render as plain `<a href>`, so the sidebar can point at
+absolute URLs in sibling apps — which no router could client-navigate anyway. A row is a document
+load. Nothing here imports `next`. The one exception is a `CLICK` row, which renders a
+`<button type="button">` and runs a string instead of navigating — see below.
+
+Active-row highlighting still works across those apps: an `href` already carrying a scheme is used
+as-is, anything else resolves against `window.location.origin`, and the row whose path is the
+longest prefix of the current one gets `.il-active-link`. A group containing that row opens itself.
 
 They are peers rather than dependencies because every one of them carries identity: two copies of
 `motion` means two `AnimatePresence` contexts and exit animations that never fire; two of
@@ -55,7 +64,7 @@ They are peers rather than dependencies because every one of them carries identi
 `Invalid hook call`.
 
 > **Do not consume this package via `link:` during development.** It vendors its own
-> react/react-dom/next in devDependencies so it can build and test itself, and a linked package
+> react/react-dom in devDependencies so it can build and test itself, and a linked package
 > resolves from its own directory first — identical version numbers do not save you, because React
 > identity is per module instance. Use a packed tarball instead, which behaves exactly like a
 > registry install:
@@ -88,7 +97,7 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | `navItems` | **required.** `NavItem[]` — the package has no data source of its own |
 | `miniSidebar` `mobileSidebarOpen` `isRTL` `isTopbarFixed` `isSidebarFixed` | controlled booleans |
 | `onToggleMini` `onToggleMobile` `onCloseMobile` | callbacks. `onCloseMobile` must be **idempotent** — it fires for overlay click, Escape, route change and crossing up into desktop, including on already-closed transitions |
-| `pathname` | defaults to `usePathname()`; pass it to render without a mounted App Router |
+| `pathname` | optional. Only used to dismiss the mobile drawer on navigation — omit it if you never navigate client-side |
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
 | `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
 
@@ -103,12 +112,71 @@ until they did the topbar offered a control that silently did nothing. Render yo
 ### `NavItem`
 
 ```ts
-{ navigationId?, title?, href?, icon?, caption?, children?, suffix?, suffixColor? }
+{ navigationId?, title?, href?, icon?, caption?, children?, suffix?, suffixColor?, type?, event? }
 ```
 
 Exactly one of three kinds: `caption` → section heading; `children` → collapsible group (one level);
-otherwise a leaf link. `icon` is usually a **class-name string** (`"bi bi-house"`) rendered as
+otherwise a leaf. `icon` is usually a **class-name string** (`"bi bi-house"`) rendered as
 `<i className={icon} />`, matching what a navigation API returns; a ReactNode also works.
+
+`type` is `"LINK"` (the default) or `"CLICK"`. A `CLICK` row has no destination: it renders as a
+`<button>` and runs `event`. Group and caption rows ignore both — a group row toggles its own panel
+and is neither a destination nor an action.
+
+### CLICK rows need `script-src 'unsafe-eval'`
+
+A `CLICK` row's `event` is a **string of JavaScript**, compiled with `new Function(event)` and called
+with no arguments. That is a Content-Security-Policy decision, so it is stated here rather than
+discovered:
+
+```
+Content-Security-Policy: script-src 'self' 'unsafe-eval';
+```
+
+Without `'unsafe-eval'` the `Function` constructor throws `EvalError` on every CLICK row. The package
+catches it and `console.error`s, so the row silently does nothing rather than breaking the page — but
+it does nothing. If your CSP cannot carry `'unsafe-eval'`, do not emit `CLICK` rows; give the row an
+`href` your app handles instead.
+
+The compiled function runs in **global scope**. It sees `window` and nothing else — not React state,
+not props, not this package. `FreshworksWidget('open')` works because the widget puts itself on
+`window`; `setState(…)` never will.
+
+Because the string is executed verbatim, **whoever can write the row can run script in the page.**
+Keep the column administrator-only. Never populate it from anything an end user can set.
+
+It is one module, `src/sidebar/runNavEvent.ts`, holding the package's only call to `new Function`. An
+empty or absent `event` is a silent no-op and never reaches the compiler; a throwing one is caught,
+logged with the row's title and the source it tried to run, and does not take the sidebar down.
+
+A CLICK row is a real `<button>`, never `<a href="#">` — and it is never highlighted as the current
+route, whatever `href` it happens to carry.
+
+### `toNavItems` — raw API rows → `NavItem[]`
+
+```jsx
+import { toNavItems } from "@devopsnext/starterkit-layout";
+
+const navItems = useMemo(() => toNavItems(rows), [rows]);
+<FullLayout navItems={navItems} t={t} />
+```
+
+A pure function, and still no data fetching: it maps rows you already have. It takes
+`{ navigationId, navigationName, navigationPath, navigationOrder, navigationIcon, navigationGroup,
+navigationType, navigationEvent }`, sorts numerically by `navigationOrder`, builds one collapsible
+group per distinct `navigationGroup` positioned at its **lowest** child order, and leaves ungrouped
+rows as leaves. A row with no order sorts last, in input order.
+
+It does **not** filter by status or role. Dropping rows is an authorization decision, and a shell
+package that silently hides one hides a bug in your ACL. Filter first.
+
+`toNavItems(rows, { t })` translates `navigationName` and the group key. **Pass `t` here or to
+`FullLayout`/`Sidebar`, not both** — both translate titles, so both means `t(t(key))`. Passing it to
+the layout is the simpler path and also covers captions, which this mapper never produces.
+
+Group parents get **no icon** unless you pass `{ groupIcon }`. There is no glyph that is right for a
+bucket whose name the package has never seen; the empty icon slot still reserves the column, so the
+row stays aligned.
 
 ## Brand
 
@@ -251,6 +319,12 @@ fight whatever you already load.
 - The hamburger keeps a **stable** accessible name and moves `aria-expanded` — swapping the label to
   "Close menu" would announce "Open menu, expanded".
 - Submenu toggles are real `<button>`s with `aria-expanded`/`aria-controls`.
+- A `CLICK` nav row is a real `<button type="button">`, not an `<a href="#">`. An anchor with no
+  destination is not in the tab order and ignores Enter and Space, so the row it replaces was
+  unreachable by keyboard and announced as a link to nowhere.
+- `<button>`s carrying `.nav-link` get their UA cursor, background, border, alignment, line-height
+  and fit-content width reset, so a control row is the same box as a link row rather than a form
+  control parked in the nav.
 - The overlay is a `<button>` with an accessible name, not a `<div>`.
 - Auto-hide never fires while focus is inside the header, because hiding marks it `inert` and that
   would drop focus to `<body>`.
@@ -272,7 +346,7 @@ second lint config that disagrees with it is worse than none.
 
 No horizontal layout, no breadcrumbs, no customizer panel, no dropdown *content* (the four panels in
 the reference app render product data, not shell chrome — they are slots). No redux, no i18n, no data
-fetching, ever.
+fetching, ever — `toNavItems` maps rows you already hold and fetches nothing.
 
 ## License
 

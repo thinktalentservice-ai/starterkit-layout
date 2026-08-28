@@ -9,6 +9,7 @@ export { Header } from "./Header";
 export { Sidebar } from "./sidebar/Sidebar";
 export { NavItemContainer } from "./sidebar/NavItemContainer";
 export { NavSubMenu } from "./sidebar/NavSubMenu";
+export { toNavItems } from "./sidebar/toNavItems";
 export { IconButton } from "./IconButton";
 export { ProfileMenu, initialsFrom } from "./ProfileMenu";
 export { BrandMark, DEFAULT_BRAND_NAME } from "./brand/BrandMark";
@@ -27,6 +28,7 @@ export type { HeaderProps } from "./Header";
 export type { SidebarProps } from "./sidebar/Sidebar";
 export type { NavItemContainerProps } from "./sidebar/NavItemContainer";
 export type { NavSubMenuProps } from "./sidebar/NavSubMenu";
+export type { NavigationRow, ToNavItemsOptions } from "./sidebar/toNavItems";
 export type { IconButtonProps } from "./IconButton";
 export type { ProfileMenuProps } from "./ProfileMenu";
 export type { BrandMarkProps } from "./brand/BrandMark";
@@ -35,6 +37,7 @@ export type { LogoProps } from "./brand/Logo";
 export type { AuthLogoProps } from "./brand/AuthLogo";
 export type {
   NavItem,
+  NavItemType,
   HeaderDropdownSlot,
   ProfileSlot,
   SidebarUser,

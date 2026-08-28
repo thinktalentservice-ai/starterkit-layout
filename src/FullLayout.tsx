@@ -1,7 +1,6 @@
 "use client";
 import { useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { usePathname } from "next/navigation";
 import { Container } from "reactstrap";
 import { motion, AnimatePresence } from "motion/react";
 import { Header } from "./Header";
@@ -56,7 +55,11 @@ export interface FullLayoutProps
    */
   onCloseMobile?: () => void;
 
-  /** Current path. Defaults to `usePathname()`; pass it to render without a router. */
+  /**
+   * Current path. Optional, and no longer used for active-link matching — the
+   * shell's only remaining use for it is dismissing the mobile drawer when the
+   * route changes, so a host that never navigates client-side can omit it.
+   */
   pathname?: string;
 
   /* ── brand ────────────────────────────────────────────────────────────── */
@@ -109,9 +112,6 @@ export function FullLayout({
   contentClassName = "",
   ...headerSlots
 }: FullLayoutProps) {
-  const routerPath = usePathname();
-  const location = pathname ?? routerPath;
-
   /* The shell element carries the geometry custom properties, so the hook must
      measure from here rather than from documentElement — this package declares
      nothing on :root. */
@@ -127,7 +127,7 @@ export function FullLayout({
   useDrawerChrome({
     open: mobileSidebarOpen,
     onClose: close,
-    pathname: location,
+    pathname,
     isDesktop,
   });
 
@@ -161,7 +161,6 @@ export function FullLayout({
           >
             <Sidebar
               navItems={navItems}
-              pathname={location}
               isFixed={isSidebarFixed}
               headerHidden={headerHidden}
               topbarHeight={topbarHeight}

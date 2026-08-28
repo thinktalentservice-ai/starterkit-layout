@@ -3,10 +3,10 @@ import { defineConfig } from "tsup";
 export default defineConfig({
   /* Two entries, not one. `./brand` exists so a consumer's auth pages — which
      live outside the dashboard route group — can import AuthLogo without
-     dragging reactstrap, simplebar and next/navigation into that bundle.
-     AuthLogo is pure SVG with zero imports today; splitting the entry is what
-     keeps that true after packaging. Checkpoint: dist/brand.js must contain no
-     reference to reactstrap, simplebar-react or next/. */
+     dragging reactstrap and simplebar into that bundle. AuthLogo is pure SVG
+     with zero imports today; splitting the entry is what keeps that true after
+     packaging. Checkpoint: dist/brand.js must contain no reference to
+     reactstrap or simplebar-react. */
   entry: ["src/index.ts", "src/brand.ts"],
   format: ["esm", "cjs"],
   dts: true,
@@ -17,20 +17,15 @@ export default defineConfig({
   // banner below and shipped a build Next would treat as a server component.
   // esbuild already tree-shakes when bundling, so the option bought nothing.
   target: "es2020",
-  /* Every peer is external, and the two regexes are load-bearing.
-     - Without /^next\//, the bare "next" string does not match the specifiers
-       actually imported — `next/link` and `next/navigation` — so esbuild treats
-       them as unmatched and inlines a second copy of the router client.
-     - The source imports `motion/react`, never bare `motion`, so the same trap
-       applies there. Two copies of motion means two AnimatePresence contexts
-       and exit animations that never fire.
-     - Two copies of reactstrap breaks the Bootstrap CSS contract its dropdowns
-       depend on. */
+  /* Every peer is external, and the regex is load-bearing: the source imports
+     `motion/react`, never bare `motion`, so listing only "motion" leaves the
+     real specifier unmatched and esbuild inlines a second copy. Two copies of
+     motion means two AnimatePresence contexts and exit animations that never
+     fire. Two copies of reactstrap breaks the Bootstrap CSS contract its
+     dropdowns depend on. */
   external: [
     "react",
     "react-dom",
-    "next",
-    /^next\//,
     "reactstrap",
     "motion",
     /^motion\//,
