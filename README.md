@@ -47,7 +47,15 @@ Load Outfit and Plus Jakarta Sans yourself (`next/font` is self-hosted and CSP-s
 
 ## Peer dependencies
 
-`react`, `react-dom`, `next`, `reactstrap`, `motion`, `simplebar-react`. `dependencies` is empty.
+`react`, `react-dom`, `reactstrap`, `motion`, `simplebar-react`. `dependencies` is empty.
+
+There is **no framework peer**. Nav rows render as plain `<a href>`, so the sidebar can point at
+absolute URLs in sibling apps — which no router could client-navigate anyway. A row is a document
+load. Nothing here imports `next`.
+
+Active-row highlighting still works across those apps: an `href` already carrying a scheme is used
+as-is, anything else resolves against `window.location.origin`, and the row whose path is the
+longest prefix of the current one gets `.il-active-link`. A group containing that row opens itself.
 
 They are peers rather than dependencies because every one of them carries identity: two copies of
 `motion` means two `AnimatePresence` contexts and exit animations that never fire; two of
@@ -55,7 +63,7 @@ They are peers rather than dependencies because every one of them carries identi
 `Invalid hook call`.
 
 > **Do not consume this package via `link:` during development.** It vendors its own
-> react/react-dom/next in devDependencies so it can build and test itself, and a linked package
+> react/react-dom in devDependencies so it can build and test itself, and a linked package
 > resolves from its own directory first — identical version numbers do not save you, because React
 > identity is per module instance. Use a packed tarball instead, which behaves exactly like a
 > registry install:
@@ -88,7 +96,7 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | `navItems` | **required.** `NavItem[]` — the package has no data source of its own |
 | `miniSidebar` `mobileSidebarOpen` `isRTL` `isTopbarFixed` `isSidebarFixed` | controlled booleans |
 | `onToggleMini` `onToggleMobile` `onCloseMobile` | callbacks. `onCloseMobile` must be **idempotent** — it fires for overlay click, Escape, route change and crossing up into desktop, including on already-closed transitions |
-| `pathname` | defaults to `usePathname()`; pass it to render without a mounted App Router |
+| `pathname` | optional. Only used to dismiss the mobile drawer on navigation — omit it if you never navigate client-side |
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
 | `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
 

@@ -1,14 +1,10 @@
 "use client";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import type { ElementType, ReactNode } from "react";
 import { Collapse, NavItem, NavLink } from "reactstrap";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { NavIcon } from "./NavIcon";
 import type { NavItem as NavItemModel, Translate } from "../types";
-
-const MotionLink = motion.create(Link);
 
 const iconVariants = {
   rest: { scale: 1 },
@@ -27,18 +23,23 @@ export interface NavSubMenuProps {
   icon?: string | ReactNode;
   items: NavItemModel[];
   /**
-   * Seeds the group open on first mount.
+   * Seeds the group open. Latched on the FIRST truthy value, then never acted on
+   * again — so a group the user collapsed is not reopened underneath them.
    *
-   * Renamed from the source's `isUrl`, which named its input rather than its
-   * effect. Read ONCE, in a mount-only effect, and that is deliberate: reacting
-   * to later changes would re-open a group the user had just collapsed every
-   * time they navigated within it.
+   * Not a mount-only read, because the value it carries is unknowable during SSR:
+   * `Sidebar` derives it from the browser's route, which only exists one commit
+   * after hydration. A `[]` effect would run before it ever turned true.
+   *
+   * Renamed from the source's `isUrl`, which named its input rather than its effect.
    */
   defaultOpen?: boolean;
+  /**
+   * Raw href of the row `Sidebar` resolved as current, compared by identity.
+   * Resolution lives entirely in Sidebar so this component holds no URL logic.
+   */
+  activeHref?: string;
   suffix?: ReactNode;
   suffixColor?: string;
-  /** Active-link matching. Defaults to `usePathname()`. */
-  pathname?: string;
   /** Applied to child titles. Defaults to identity. */
   t?: Translate;
   /**
@@ -54,22 +55,24 @@ export function NavSubMenu({
   title,
   items,
   defaultOpen = false,
+  activeHref,
   suffixColor,
   suffix,
-  pathname,
   t = identity,
   tag = "li" as ElementType,
 }: NavSubMenuProps) {
-  const routerPath = usePathname();
-  const location = pathname ?? routerPath;
   const [open, setOpen] = useState(false);
   const panelId = useId();
+  const seeded = useRef(false);
 
+  // Opens on the first truthy defaultOpen, whenever it arrives, and never again
+  // — see the prop's docs for why "whenever" and not "on mount".
   useEffect(() => {
-    if (defaultOpen) setOpen(true);
-    // Mount-only, on purpose — see `defaultOpen` above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (defaultOpen && !seeded.current) {
+      seeded.current = true;
+      setOpen(true);
+    }
+  }, [defaultOpen]);
 
   return (
     <NavItem tag={tag} className={open ? "il-active-parent" : ""}>
@@ -130,9 +133,13 @@ export function NavSubMenu({
                key that changes with the active language remounts every row on a
                language switch, discarding focus and animation state. */
             key={item.navigationId ?? item.href ?? `${item.title}-${i}`}
-            className={`il-hide-mini ${location === item.href ? "il-active-link" : ""}`.trim()}
+            /* The `!== undefined` guard is not redundant: a child with no href
+               would otherwise compare equal to an unresolved activeHref. */
+            className={`il-hide-mini ${
+              item.href !== undefined && item.href === activeHref ? "il-active-link" : ""
+            }`.trim()}
           >
-            <MotionLink
+            <motion.a
               href={item.href ?? "/"}
               className="nav-link"
               initial="rest"
@@ -145,7 +152,7 @@ export function NavSubMenu({
               <motion.span variants={labelVariants} className="il-hide-mini">
                 <span>{t(item.title ?? "")}</span>
               </motion.span>
-            </MotionLink>
+            </motion.a>
           </NavItem>
         ))}
       </Collapse>

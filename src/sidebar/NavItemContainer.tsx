@@ -1,14 +1,8 @@
 "use client";
 import type { ElementType, ReactNode } from "react";
 import { NavItem } from "reactstrap";
-import Link from "next/link";
 import { motion } from "motion/react";
 import { NavIcon } from "./NavIcon";
-
-/* motion.create() must be called once, at module scope — calling it during
-   render returns a new component type every time, which unmounts and remounts
-   the link (and its animation state) on every parent render. */
-const MotionLink = motion.create(Link);
 
 const iconVariants = {
   rest: { scale: 1 },
@@ -28,7 +22,10 @@ export interface NavItemContainerProps {
   suffix?: ReactNode;
   /** Extra class on the badge, e.g. "bg-danger". */
   suffixColor?: string;
-  /** Class on the wrapping item — the shell passes "il-active-link". */
+  /**
+   * Class on the wrapping item. `Sidebar` sets "il-active-link" here on whichever
+   * row matches the current URL; pass your own for anything else.
+   */
   className?: string;
   /** Renamed from the source's `toggle`, which described nothing. */
   onClick?: () => void;
@@ -57,7 +54,10 @@ export function NavItemContainer({
 }: NavItemContainerProps) {
   return (
     <NavItem tag={tag} onClick={onClick} className={className}>
-      <MotionLink
+      {/* A plain <a>, not next/link: nav rows point at absolute URLs in sibling
+          apps, which a router cannot client-navigate or prefetch anyway. Keeping
+          Link only bought this package a framework peer dependency. */}
+      <motion.a
         href={to}
         className="nav-link mb-2"
         initial="rest"
@@ -78,7 +78,7 @@ export function NavItemContainer({
             )}
           </div>
         </motion.span>
-      </MotionLink>
+      </motion.a>
     </NavItem>
   );
 }

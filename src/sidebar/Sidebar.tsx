@@ -1,11 +1,12 @@
 "use client";
+import { useMemo } from "react";
 import type { ReactNode } from "react";
 import { Nav } from "reactstrap";
-import { usePathname } from "next/navigation";
 import SimpleBar from "simplebar-react";
 import { motion } from "motion/react";
 import { NavItemContainer } from "./NavItemContainer";
 import { NavSubMenu } from "./NavSubMenu";
+import { isUnder, toRouteKey, useCurrentRoute } from "./activeRoute";
 import type { NavItem as NavItemModel, SidebarUser, Translate } from "../types";
 
 // Matches the topbar's own slide, so header and sidebar move as one.
@@ -32,8 +33,6 @@ const buildVariants = (stagger: number) => ({
 export interface SidebarProps {
   /** Rows to render. Required — this package has no data source of its own. */
   navItems: NavItemModel[];
-  /** Active-link matching. Defaults to `usePathname()`. */
-  pathname?: string;
   /** `position: fixed`, top/bottom anchored, rather than in-flow. */
   isFixed?: boolean;
   /** The topbar is hidden — collapses the docked offset to 0. */
@@ -60,7 +59,6 @@ export interface SidebarProps {
 
 export function Sidebar({
   navItems,
-  pathname,
   isFixed = false,
   headerHidden = false,
   topbarHeight = null,
@@ -71,13 +69,39 @@ export function Sidebar({
   className = "",
   staggerDelay = 0.04,
 }: SidebarProps) {
-  const routerPath = usePathname();
-  const location = pathname ?? routerPath;
-  /* The source's parent-segment rule, preserved exactly: for "/apps/chat" this
-     yields "/apps", so a group only ever auto-opens when its own href is the
-     parent segment of the current route. It is subtle and easy to "improve"
-     into something that behaves differently — a test pins it. */
-  const currentURL = location.slice(0, location.lastIndexOf("/"));
+  const current = useCurrentRoute();
+
+  /* Which row is current cannot be decided one row at a time: several can match
+     at once ("/user" and "/user/task-list" both contain "/user/task-list/42"),
+     and only the deepest should light. So every candidate is resolved in one
+     pass here and the winner travels down as its own raw href string — which
+     keeps NavSubMenu free of any URL logic, comparing by identity instead.
+
+     A group's own href is a toggle, not a destination, so only leaves and
+     submenu children compete. `current` being non-empty means we are past
+     hydration and on the client, which is what makes window.location.origin
+     safe to read. */
+  const activeHref = useMemo(() => {
+    if (!current) return undefined;
+    const { origin } = window.location;
+    let bestHref: string | undefined;
+    let bestLength = -1;
+
+    const consider = (href: string) => {
+      const key = toRouteKey(href, origin);
+      if (isUnder(key, current) && key.length > bestLength) {
+        bestLength = key.length;
+        bestHref = href;
+      }
+    };
+
+    for (const navi of navItems) {
+      if (navi.caption) continue;
+      if (navi.children) navi.children.forEach((child) => child.href && consider(child.href));
+      else consider(navi.href || "/");
+    }
+    return bestHref;
+  }, [navItems, current]);
 
   /* Only the fixed sidebar is offset here; the in-flow variant is positioned by its
      parent's margin (--il-shell-top in styles.css). It still animates to `top: 0`
@@ -159,8 +183,15 @@ export function Sidebar({
                       items={navi.children}
                       suffix={navi.suffix}
                       suffixColor={navi.suffixColor}
-                      defaultOpen={currentURL === navi.href}
-                      pathname={location}
+                      /* The `!== undefined` guard is not redundant: a child with
+                         no href would otherwise compare equal to an unresolved
+                         activeHref and open every group during SSR. */
+                      defaultOpen={
+                        navi.defaultOpen ??
+                        (activeHref !== undefined &&
+                          navi.children.some((c) => c.href === activeHref))
+                      }
+                      activeHref={activeHref}
                       t={t}
                     />
                   </motion.li>
@@ -171,7 +202,11 @@ export function Sidebar({
                 <motion.li key={navi.navigationId ?? navi.title} {...common}>
                   <NavItemContainer
                     tag="div"
-                    className={location === navi.href ? "il-active-link" : ""}
+                    className={
+                      activeHref !== undefined && (navi.href || "/") === activeHref
+                        ? "il-active-link"
+                        : ""
+                    }
                     to={navi.href || "/"}
                     title={t(navi.title ?? "")}
                     suffix={navi.suffix}

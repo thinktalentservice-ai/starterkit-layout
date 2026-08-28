@@ -31,6 +31,13 @@ export interface NavItem {
   caption?: string | null;
   /** Collapsible group children. One level only — sub-children are not rendered. */
   children?: NavItem[] | null;
+  /**
+   * Forces a group open regardless of the route. Group rows only.
+   *
+   * An override, not the usual mechanism: left unset, a group opens by itself
+   * when one of its children matches the current URL.
+   */
+  defaultOpen?: boolean;
   /** Trailing badge content. */
   suffix?: ReactNode;
   /** Extra class on the badge, e.g. "bg-danger". */
