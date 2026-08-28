@@ -15,6 +15,13 @@ const SHELL_DURATION = 0.3;
 
 const identity: Translate = (key) => key;
 
+/* A CLICK row is an action, not a destination. Its href is '#' or absent, and
+   toRouteKey('#', origin) reduces to origin + '/', which isUnder holds to an
+   exact match — so every CLICK row in the nav would light up on the site root,
+   and one carrying the same string as a real row could tie with it anywhere.
+   Excluded from the candidate set AND from the comparisons that use the winner. */
+const isAction = (item: NavItemModel) => item.type === "CLICK";
+
 /* Built per-render from `staggerDelay` rather than fixed at 0.04, so the prop is
    real. At 0 the rows resolve to their visible state with no transition at all,
    which is what a long nav wants — 40 rows at 0.04s each is a 1.6s cascade. */
@@ -97,8 +104,13 @@ export function Sidebar({
 
     for (const navi of navItems) {
       if (navi.caption) continue;
-      if (navi.children) navi.children.forEach((child) => child.href && consider(child.href));
-      else consider(navi.href || "/");
+      if (navi.children) {
+        navi.children.forEach((child) => {
+          if (!isAction(child) && child.href) consider(child.href);
+        });
+      } else if (!isAction(navi)) {
+        consider(navi.href || "/");
+      }
     }
     return bestHref;
   }, [navItems, current]);
@@ -189,7 +201,7 @@ export function Sidebar({
                       defaultOpen={
                         navi.defaultOpen ??
                         (activeHref !== undefined &&
-                          navi.children.some((c) => c.href === activeHref))
+                          navi.children.some((c) => !isAction(c) && c.href === activeHref))
                       }
                       activeHref={activeHref}
                       t={t}
@@ -203,7 +215,9 @@ export function Sidebar({
                   <NavItemContainer
                     tag="div"
                     className={
-                      activeHref !== undefined && (navi.href || "/") === activeHref
+                      !isAction(navi) &&
+                      activeHref !== undefined &&
+                      (navi.href || "/") === activeHref
                         ? "il-active-link"
                         : ""
                     }
@@ -212,6 +226,11 @@ export function Sidebar({
                     suffix={navi.suffix}
                     suffixColor={navi.suffixColor}
                     icon={navi.icon}
+                    /* Passed straight through, undefined and all — both props have
+                       a default parameter on the other side, which is what a
+                       default parameter is for. */
+                    type={navi.type}
+                    event={navi.event}
                   />
                 </motion.li>
               );

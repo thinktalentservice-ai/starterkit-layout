@@ -963,6 +963,38 @@
   color: var(--il-t-fg1);
 }
 
+/* A CLICK row is a <button>, and a UA stylesheet hands a button five things a nav
+   row must not have: `cursor: default`, a grey background, a full border, a
+   centred label, and — because a form control's automatic size is fit-content,
+   whatever its `display` — a width that shrink-wraps its text instead of spanning
+   the column. That last one is why this rule matters beyond the new row:
+   .il-submenu-toggle below has always been a button, so the .il-active-parent
+   highlight has been drawing at content width, not full-bleed, since it became one.
+
+   Bootstrap 5.3's own `.nav-link` resets the background and border, but this
+   package emits Bootstrap class names WITHOUT depending on Bootstrap — the same
+   reason box-sizing is declared and not assumed on .il-content-area — so leaning
+   on it would put the shell one missing stylesheet away from a nav full of grey
+   buttons, silently.
+
+   `border-left` is deliberately untouched: the 3px transparent placeholder on
+   .nav-link is what the active accent replaces, and zeroing it here would shift
+   every CLICK row 3px against its neighbours. Fonts are untouched too — .nav-link
+   already sets family, size and weight, and they apply to a button as readily as
+   to an anchor. `line-height` is the one it does not set, and the UA `font`
+   shorthand resets it, so it is inherited back explicitly. */
+.il-sidebar-area button.nav-link {
+  box-sizing: border-box;
+  width: 100%;
+  cursor: pointer;
+  background: none;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  text-align: inherit;
+  line-height: inherit;
+}
+
 /* Active nav link (accent) */
 .il-sidebar-area .il-active-link .nav-link,
 .il-sidebar-area .nav-item.il-active-parent > .nav-link {

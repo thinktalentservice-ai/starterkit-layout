@@ -245,6 +245,229 @@ describe("active link", () => {
   });
 });
 
+describe("CLICK rows", () => {
+  /* The event is a STRING of source, so a test cannot hand it a spy — it can only
+     observe a side effect on a global, which is the only scope the compiled
+     function can reach. Setting a counter is the whole of the dangerous code. */
+  type Probe = { __navHit?: unknown };
+  const probe = () => globalThis as unknown as Probe;
+  const hit = () => probe().__navHit;
+  const HIT = "globalThis.__navHit = (globalThis.__navHit ?? 0) + 1";
+
+  /* SimpleBar console.errors on mount under jsdom, which has no
+     getComputedStyle for it — so a bare `toHaveBeenCalled` on the spy asserts
+     that noise, not ours. Only this package's own messages count. */
+  const navErrors = (spy: { mock: { calls: unknown[][] } }) =>
+    spy.mock.calls.filter(
+      (call) => typeof call[0] === "string" && call[0].startsWith("[starterkit-layout]"),
+    );
+
+  afterEach(() => {
+    delete probe().__navHit;
+  });
+
+  const clickRow: NavItem = {
+    navigationId: 43,
+    title: "Help",
+    href: "#",
+    icon: "mdi mdi-help-circle",
+    type: "CLICK",
+    event: HIT,
+  };
+
+  it("renders a CLICK row as a button, never as a link", () => {
+    render(<Sidebar navItems={[clickRow]} />);
+    expect(screen.getByRole("button", { name: /Help/ })).toHaveAttribute("type", "button");
+    // The source rendered an <a> with no href: not focusable, deaf to Enter and Space.
+    expect(screen.queryByRole("link", { name: /Help/ })).toBeNull();
+  });
+
+  it("defaults to LINK when type is absent", () => {
+    render(<Sidebar navItems={[{ navigationId: 1, title: "Home", href: "/home" }]} />);
+    expect(screen.getByRole("link", { name: /Home/ })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Home/ })).toBeNull();
+  });
+
+  it("runs the row's own event, once per click", async () => {
+    const user = userEvent.setup();
+    render(<Sidebar navItems={[clickRow]} />);
+    const button = screen.getByRole("button", { name: /Help/ });
+
+    await user.click(button);
+    expect(hit()).toBe(1);
+    // Compiled per click, not latched to a one-shot.
+    await user.click(button);
+    expect(hit()).toBe(2);
+  });
+
+  it("catches a throwing event and leaves the rest of the nav working", async () => {
+    const user = userEvent.setup();
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <Sidebar
+        navItems={[
+          { navigationId: 1, title: "Boom", type: "CLICK", event: "throw new Error('boom')" },
+          { navigationId: 2, title: "Help", type: "CLICK", event: HIT },
+          { navigationId: 3, title: "Home", href: "/home" },
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Boom/ }));
+    const logged = navErrors(spy);
+    expect(logged).toHaveLength(1);
+    // The message must name the row; "SyntaxError" alone is unactionable at 40 rows.
+    expect(String(logged[0]?.[0])).toContain("Boom");
+
+    await user.click(screen.getByRole("button", { name: /Help/ }));
+    expect(hit()).toBe(1);
+    expect(screen.getByRole("link", { name: /Home/ })).toBeInTheDocument();
+    spy.mockRestore();
+  });
+
+  it("is silent when the event is empty or absent", async () => {
+    const user = userEvent.setup();
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    render(
+      <Sidebar
+        navItems={[
+          { navigationId: 1, title: "Empty", type: "CLICK", event: "  " },
+          { navigationId: 2, title: "Missing", type: "CLICK" },
+        ]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Empty/ }));
+    await user.click(screen.getByRole("button", { name: /Missing/ }));
+    expect(hit()).toBeUndefined();
+    // An unfilled event column is a no-op, not an error worth logging.
+    expect(navErrors(spy)).toEqual([]);
+    spy.mockRestore();
+  });
+
+  it("is the same box as a LINK row — same classes, icon and badge", () => {
+    const { container } = render(
+      <Sidebar navItems={[{ ...clickRow, suffix: "2", suffixColor: "bg-danger" }]} />,
+    );
+    const button = container.querySelector("button.nav-link.mb-2");
+    expect(button).toBeInTheDocument();
+    expect(button?.querySelector(".il-nav-icon i.mdi.mdi-help-circle")).toBeInTheDocument();
+    expect(button?.querySelector(".badge")).toHaveTextContent("2");
+  });
+
+  /* toRouteKey('#', origin) reduces to the origin root, so without the exclusion
+     every CLICK row in the nav lights up on '/'. */
+  it("never lights a CLICK row, even at the site root", () => {
+    goTo("/");
+    const { container } = render(
+      <Sidebar navItems={[{ navigationId: 1, title: "Home", href: "/" }, clickRow]} />,
+    );
+    const active = container.querySelectorAll(".il-active-link");
+    expect(active).toHaveLength(1);
+    expect(active[0]).toHaveTextContent("Home");
+  });
+
+  /* The case keeping CLICK rows out of the resolver does NOT cover: two rows can
+     carry the same href string, so the winner must be re-checked at the row. */
+  it("never lights a CLICK row that shares the active row's href", () => {
+    goTo("/reports");
+    const { container } = render(
+      <Sidebar
+        navItems={[
+          { navigationId: 1, title: "Reports", href: "/reports" },
+          { navigationId: 2, title: "Export", href: "/reports", type: "CLICK", event: HIT },
+        ]}
+      />,
+    );
+    const active = container.querySelectorAll(".il-active-link");
+    expect(active).toHaveLength(1);
+    expect(active[0]).toHaveTextContent("Reports");
+  });
+
+  describe("inside a group", () => {
+    const group: NavItem[] = [
+      {
+        navigationId: 9,
+        title: "Support",
+        // The parent says CLICK and carries an event. Both must be ignored.
+        type: "CLICK",
+        event: "globalThis.__navHit = 'parent'",
+        defaultOpen: true,
+        children: [
+          {
+            navigationId: 91,
+            title: "Chat",
+            type: "CLICK",
+            event: "globalThis.__navHit = 'child'",
+          },
+          { navigationId: 92, title: "Docs", href: "/docs" },
+        ],
+      },
+    ];
+
+    /* The source passed the PARENT's type and event to every child, so one CLICK
+       group turned all its children into buttons running the parent's string. */
+    it("runs the child's own event, not the parent's", async () => {
+      const user = userEvent.setup();
+      render(<Sidebar navItems={group} />);
+      await user.click(screen.getByRole("button", { name: /Chat/ }));
+      expect(hit()).toBe("child");
+      // And a LINK sibling is untouched by the parent's CLICK.
+      expect(screen.getByRole("link", { name: /Docs/ })).toHaveAttribute("href", "/docs");
+    });
+
+    it("keeps the group row a toggle even when it says CLICK", async () => {
+      const user = userEvent.setup();
+      render(<Sidebar navItems={group} />);
+      const toggle = screen.getByRole("button", { name: /Support/ });
+      expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+      await user.click(toggle);
+      expect(toggle).toHaveAttribute("aria-expanded", "false");
+      expect(hit()).toBeUndefined();
+    });
+
+    it("never lights a CLICK child", () => {
+      goTo("/apps/chat");
+      const { container } = render(
+        <Sidebar
+          navItems={[
+            { navigationId: 1, title: "Chat page", href: "/apps/chat" },
+            {
+              navigationId: 9,
+              title: "Support",
+              defaultOpen: true,
+              children: [
+                { navigationId: 91, title: "Chat", href: "/apps/chat", type: "CLICK", event: HIT },
+              ],
+            },
+          ]}
+        />,
+      );
+      const active = container.querySelectorAll(".il-active-link");
+      expect(active).toHaveLength(1);
+      expect(active[0]).toHaveTextContent("Chat page");
+    });
+  });
+
+  it("has no axe violations", async () => {
+    const { container } = render(
+      <Sidebar
+        navItems={[
+          clickRow,
+          {
+            navigationId: 9,
+            title: "Support",
+            defaultOpen: true,
+            children: [{ navigationId: 91, title: "Chat", type: "CLICK", event: HIT }],
+          },
+        ]}
+      />,
+    );
+    await expectNoViolations(container);
+  });
+});
+
 describe("NavSubMenu open state", () => {
   /* The shell used to derive this from the current path. It cannot any more —
      an href is an absolute URL into a sibling app, so there is nothing to

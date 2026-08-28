@@ -1,22 +1,50 @@
 import type { ReactNode } from "react";
 
 /**
+ * What activating a leaf row does. Mirrors `NAVIGATION_TYPE` in the navigation
+ * table this models, so a database row, a `NavItem` and the props it becomes all
+ * read the same word.
+ *
+ * Exported because a consumer writing its own mapper instead of using
+ * `toNavItems` needs to name the value it is producing.
+ */
+export type NavItemType = "LINK" | "CLICK";
+
+/**
  * One row in the sidebar.
  *
  * Shaped by what NavItemContainer/NavSubMenu actually consume — deliberately NOT
  * by the host's navigation API response, which this package never sees. A
- * consumer maps its own rows onto this.
+ * consumer maps its own rows onto this; `toNavItems` is one such mapper, for the
+ * row shape the reference host serves.
  *
  * A row is exactly one of three kinds, discriminated by which field is present:
  *   `caption` present   → section heading, not a link
  *   `children` present  → collapsible group
- *   otherwise           → leaf link
+ *   otherwise           → leaf, which `type` splits into a link or an action
+ *
+ * Deliberately ONE interface of optional fields and not a discriminated union.
+ * A union would let `type: "CLICK"` carry `href?: never`, which reads well and
+ * costs three things: `NavItem` stops being an `interface`, so a consumer's
+ * `interface Row extends NavItem` breaks on a minor version; `href?: never` is
+ * unassignable from any mapper whose output is `string | undefined`, so
+ * `toNavItems` would need a cast at exactly the point the union existed to
+ * check; and it would make ONE of the four kinds type-safe while caption and
+ * children stay prose, reading as though all four were checked. The kinds are
+ * enforced where they are decided — in Sidebar's dispatch — and stated here.
  */
 export interface NavItem {
   /** Stable React key. Falls back to `title` when absent. */
   navigationId?: string | number;
   title?: string;
-  /** Leaf/group href. A leaf with no href renders as "/", matching the source. */
+  /**
+   * Leaf/group href. A leaf with no href renders as "/", matching the source.
+   *
+   * Mutually exclusive with `event` in practice and not enforced by the type —
+   * see the union note above. A row carrying both is resolved by `type`, which
+   * wins outright: a CLICK row ignores `href` completely rather than
+   * half-honouring it as a fallback destination.
+   */
   href?: string;
   /**
    * Usually a CSS class name (`"bi bi-house"`, `"mdi mdi-home"`) rendered as
@@ -42,6 +70,39 @@ export interface NavItem {
   suffix?: ReactNode;
   /** Extra class on the badge, e.g. "bg-danger". */
   suffixColor?: string;
+  /**
+   * Leaf behaviour. Defaults to `"LINK"`.
+   *
+   * `"LINK"` renders `<a href>`. `"CLICK"` renders `<button type="button">` that
+   * runs `event` and navigates nowhere — the shape of a row whose job is to open
+   * something the host already put on `window` (a support widget, a chat bubble)
+   * and which therefore has no URL to point at.
+   *
+   * The test is `=== "CLICK"`, never `!== "LINK"`. The source compared the other
+   * way round, so a row whose type arrived null, lowercase, or as a value added
+   * to the enum later fell through to *executing a string* — the wrong side of a
+   * typo to land on. Anything that is not exactly `"CLICK"` is a link.
+   *
+   * Ignored on a `caption` or `children` row. A group row toggles its own panel;
+   * it is neither a destination nor an action, which is the one thing the source
+   * had right and the reason its groups were never clickable.
+   *
+   * A CLICK row never takes `.il-active-link`, even at the site root — see the
+   * resolver in Sidebar.
+   */
+  type?: NavItemType;
+  /**
+   * JavaScript source for a `"CLICK"` row, compiled with `new Function(event)`
+   * and called with no arguments — so it runs in GLOBAL scope and can see
+   * `window` and nothing else. Not a callback and not a function: this models a
+   * `varchar(600)` an administrator edits, so a string is the only thing that
+   * survives the trip through the API.
+   *
+   * Requires `script-src 'unsafe-eval'`; see the README. Absent or empty is a
+   * silent no-op, not an error — a CLICK row whose event has not been filled in
+   * yet renders an inert button rather than a link to nowhere.
+   */
+  event?: string;
 }
 
 /**

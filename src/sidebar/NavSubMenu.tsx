@@ -4,6 +4,7 @@ import type { ElementType, ReactNode } from "react";
 import { Collapse, NavItem, NavLink } from "reactstrap";
 import { motion } from "motion/react";
 import { NavIcon } from "./NavIcon";
+import { runNavEvent } from "./runNavEvent";
 import type { NavItem as NavItemModel, Translate } from "../types";
 
 const iconVariants = {
@@ -127,34 +128,69 @@ export function NavSubMenu({
       </motion.div>
 
       <Collapse isOpen={open} navbar tag="ul" className="il-submenu" id={panelId}>
-        {items.map((item, i) => (
-          <NavItem
-            /* Keyed on identity, not on the translated title the source used — a
-               key that changes with the active language remounts every row on a
-               language switch, discarding focus and animation state. */
-            key={item.navigationId ?? item.href ?? `${item.title}-${i}`}
-            /* The `!== undefined` guard is not redundant: a child with no href
-               would otherwise compare equal to an unresolved activeHref. */
-            className={`il-hide-mini ${
-              item.href !== undefined && item.href === activeHref ? "il-active-link" : ""
-            }`.trim()}
-          >
-            <motion.a
-              href={item.href ?? "/"}
-              className="nav-link"
-              initial="rest"
-              whileHover="hover"
-              animate="rest"
-            >
+        {items.map((item, i) => {
+          /* Each child reads its OWN type and event. The source passed the
+             PARENT's down to every child, so one CLICK group turned all of its
+             children into buttons running the parent's string — and a LINK
+             parent made a CLICK child unreachable. The parent's values are not
+             even props of this component, so the bug cannot be reintroduced by
+             hand. */
+          const isClick = item.type === "CLICK";
+
+          /* One subtree, two possible elements — the same split NavItemContainer
+             makes, for the same reason. */
+          const body = (
+            <>
               <motion.span variants={iconVariants} className="il-nav-icon">
                 <NavIcon icon={item.icon} />
               </motion.span>
               <motion.span variants={labelVariants} className="il-hide-mini">
                 <span>{t(item.title ?? "")}</span>
               </motion.span>
-            </motion.a>
-          </NavItem>
-        ))}
+            </>
+          );
+
+          const rowProps = {
+            className: "nav-link",
+            initial: "rest",
+            whileHover: "hover",
+            animate: "rest",
+          } as const;
+
+          return (
+            <NavItem
+              /* Keyed on identity, not on the translated title the source used — a
+                 key that changes with the active language remounts every row on a
+                 language switch, discarding focus and animation state. */
+              key={item.navigationId ?? item.href ?? `${item.title}-${i}`}
+              /* The `!== undefined` guard is not redundant: a child with no href
+                 would otherwise compare equal to an unresolved activeHref. The
+                 `!isClick` guard is not redundant either: Sidebar keeps CLICK rows
+                 out of the resolver, but two rows may carry the same href string,
+                 and an action must never be highlighted as the current
+                 destination when it never was one. */
+              className={`il-hide-mini ${
+                !isClick && item.href !== undefined && item.href === activeHref
+                  ? "il-active-link"
+                  : ""
+              }`.trim()}
+            >
+              {isClick ? (
+                <motion.button
+                  type="button"
+                  {...rowProps}
+                  onClick={() => runNavEvent(item.event, item.title)}
+                >
+                  {body}
+                </motion.button>
+              ) : (
+                <motion.a href={item.href ?? "/"} {...rowProps}>
+                  {body}
+                </motion.a>
+              )}
+            </NavItem>
+          );
+        })}
       </Collapse>
     </NavItem>
   );

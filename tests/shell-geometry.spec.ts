@@ -69,6 +69,28 @@ const NAV_MARKUP = `
   </div>
 `;
 
+/* A LINK row and a CLICK row side by side. The only thing separating them is the
+   element, which is the whole assertion: a <button> keeps a form control's
+   automatic fit-content size whatever its `display`, so without the
+   `button.nav-link` reset in styles.css the CLICK row shrink-wraps its label
+   while the anchor beside it spans the column. */
+const NAV_MARKUP_BOTH_KINDS = `
+  <div class="il-sidebar-nav pt-1 mt-2">
+    <ul class="nav flex-column">
+      <li>
+        <div class="nav-item">
+          <a class="nav-link mb-2" id="link-row" href="#"><span>My Tasks</span></a>
+        </div>
+      </li>
+      <li>
+        <div class="nav-item">
+          <button type="button" class="nav-link mb-2" id="click-row"><span>Help</span></button>
+        </div>
+      </li>
+    </ul>
+  </div>
+`;
+
 function shellHtml(extraCssBefore?: string, sidebarBoxInner?: string): string {
   const before = extraCssBefore ? `<style>${extraCssBefore}</style>` : "";
   const markup = sidebarBoxInner
@@ -296,6 +318,33 @@ test("full-bleed nav rows: the label keeps its 16px inset once the wrapper gutte
   // 16px of padding, plus the 3px transparent border-left that the active state
   // repaints as the accent bar.
   expect(labelBB.x - rowBB.x).toBeCloseTo(19, 0);
+});
+
+test("a CLICK row's <button> is the same box as a LINK row's <a>", async ({ page }) => {
+  /* jsdom lays nothing out, so the vitest suite can prove a CLICK row has the
+     same CLASSES as a link but not the same BOX. Only Chromium can, and without
+     the `.il-sidebar-area button.nav-link` reset this fails on width: a form
+     control's automatic size is fit-content regardless of `display`, so the row's
+     hover and active backgrounds would stop at the end of the label.
+
+     This also covers .il-submenu-toggle, which has been a <button> since it
+     stopped being a bare <a> and was drawing its .il-active-parent highlight at
+     content width the whole time. */
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setContent(shellHtml(NAV_RESET_CSS, NAV_MARKUP_BOTH_KINDS));
+
+  const linkBB = (await page.locator("#link-row").boundingBox())!;
+  const clickBB = (await page.locator("#click-row").boundingBox())!;
+
+  expect(Math.abs(clickBB.width - linkBB.width)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(clickBB.height - linkBB.height)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(clickBB.x - linkBB.x)).toBeLessThanOrEqual(0.5);
+  expect(clickBB.width).toBeCloseTo(240, 0);
+
+  // And the label starts at the same inset, so the two rows read as one column.
+  const linkLabel = (await page.locator("#link-row span").boundingBox())!;
+  const clickLabel = (await page.locator("#click-row span").boundingBox())!;
+  expect(Math.abs(clickLabel.x - linkLabel.x)).toBeLessThanOrEqual(0.5);
 });
 
 test("keyboard focus is visible on a sidebar row, and its ring is drawn inside the row", async ({
