@@ -45,6 +45,8 @@ Two, and both are real:
 Fonts are **not** requested. The type tokens carry family names only and fall back to `system-ui`.
 Load Outfit and Plus Jakarta Sans yourself (`next/font` is self-hosted and CSP-safe).
 
+Node 18 or newer.
+
 ## Peer dependencies
 
 `react`, `react-dom`, `reactstrap`, `motion`, `simplebar-react`. `dependencies` is empty.
@@ -71,7 +73,7 @@ They are peers rather than dependencies because every one of them carries identi
 >
 > ```bash
 > pnpm build && pnpm pack
-> cd ../your-app && pnpm add ./../starterkit-layout/devopsnext-starterkit-layout-0.1.0.tgz
+> cd ../your-app && pnpm add ./../starterkit-layout/devopsnext-starterkit-layout-1.4.1.tgz
 > ```
 >
 > A tarball also tests **what actually ships** (`dist/` + `styles.css`), which a `link:` never does.
@@ -85,8 +87,12 @@ They are peers rather than dependencies because every one of them carries identi
 | `@devopsnext/starterkit-layout/styles.css` | the entire visual definition | — |
 
 `./brand` exists so an auth page — which renders outside the dashboard shell — can show the brand
-without pulling reactstrap, simplebar and the router into that route's bundle. `Favicon` is
+without pulling reactstrap, simplebar and motion into that route's bundle. `Favicon` is
 deliberately **not** there: it needs `motion` for its collapse animation.
+
+Both entries ship ESM and CJS with type declarations, and `"use client"` is re-attached to every
+emitted chunk — esbuild strips top-of-file directives, and a chunk that loses it fails at import
+time under the RSC compiler.
 
 ## The package is stateless
 
@@ -95,33 +101,82 @@ There is no store, no context, no data fetching. `FullLayout` takes values and c
 | Prop | |
 |---|---|
 | `navItems` | **required.** `NavItem[]` — the package has no data source of its own |
-| `miniSidebar` `mobileSidebarOpen` `isRTL` `isTopbarFixed` `isSidebarFixed` | controlled booleans |
+| `miniSidebar` `mobileSidebarOpen` `isRTL` `isTopbarFixed` `isSidebarFixed` | controlled booleans, all defaulting to `false` |
 | `onToggleMini` `onToggleMobile` `onCloseMobile` | callbacks. `onCloseMobile` must be **idempotent** — it fires for overlay click, Escape, route change and crossing up into desktop, including on already-closed transitions |
 | `pathname` | optional. Only used to dismiss the mobile drawer on navigation — omit it if you never navigate client-side |
 | `t` | `(key) => string`, applied to nav titles and captions. Defaults to identity, so i18n is opt-in |
-| `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }` |
+| `geometry` | `{ sidebarWidth, miniSidebarWidth, topbarHeight }`. Numbers are px; the values land as inline custom properties on the shell root |
+| `autoHideHeader` | default `true`. The topbar slides out of flow on scroll down and returns on scroll up, and the sidebar's offset follows it |
+| `container` `containerClassName` | children are wrapped in a reactstrap fluid `Container` — default `true` and `"p-4"`. `container={false}` renders them raw |
+| `mobileSidebarId` | the drawer's `id`, and the hamburger's `aria-controls`. Default `DEFAULT_MOBILE_SIDEBAR_ID` (`"il-mobile-sidebar"`) |
+| `className` `contentClassName` | extra classes on the shell root and on the content column |
 
-Chrome is slots — `favicon`, `logo`, `headerDropdowns[]`, `themeToggle`,
-`roleBadge`, `profile`, `headerEndSlot`, `sidebarHeader`, `sidebarUser`, `sidebarFooter`. There is
-**no** default profile menu and no default logout link, and **no search field** — a shell package
-does not get to decide those, and it has no data to search. The removed search input reported
-keystrokes through an `onSearch` callback and searched nothing, so every consumer replaced it and
-until they did the topbar offered a control that silently did nothing. Render your own into
-`headerCenterSlot` or `headerActionsSlot`; `SearchIcon` is still exported.
+Chrome is slots — `favicon`, `logo`, `headerDropdowns[]`, `headerCenterSlot`, `themeToggle`,
+`headerActionsSlot`, `roleBadge`, `profile`, `headerEndSlot`, `sidebarHeader`, `sidebarUser`,
+`sidebarFooter`. There is **no** default profile menu and no default logout link, and **no search
+field** — a shell package does not get to decide those, and it has no data to search. The removed
+search input reported keystrokes through an `onSearch` callback and searched nothing, so every
+consumer replaced it and until they did the topbar offered a control that silently did nothing.
+Render your own into `headerCenterSlot` or `headerActionsSlot`; `SearchIcon` is still exported.
+
+### Where each slot lands
+
+**Left:** `favicon` — the desktop lockup, defaulting to `<Favicon miniSidebar={miniSidebar} />` —
+then the mini toggle, then `logo` (the sub-`lg` mark, defaulting to `<Logo />`) and the hamburger.
+
+**Centre:** `headerDropdowns[]`, then `headerCenterSlot`.
+
+**Right, in order:** `themeToggle`, `headerActionsSlot`, `roleBadge` (a string renders inside the
+pill; a node replaces it), `profile`, `headerEndSlot`.
+
+**Sidebar:** `sidebarHeader` replaces the default user block entirely (`null` removes it),
+`sidebarUser` — `{ initials?, name?, avatar? }` — fills it, and `sidebarFooter` renders after the
+nav, inside the scroller.
+
+### `HeaderDropdownSlot`
+
+The package owns the toggle and the panel chrome; the content is entirely yours.
+
+| Field | |
+|---|---|
+| `id` | **required.** Stable key, and the base for the panel's generated aria ids |
+| `icon` `label` | toggle glyph, and the toggle's accessible name — also the text of the panel's header row |
+| `content` | panel body, rendered inside the scroller |
+| `width` | `"panel"` (the 300px panel, default) or `"mega"` (full-bleed) |
+| `scrollMaxHeight` | scroller cap in px, default 350. `false` drops the SimpleBar wrapper entirely |
+| `showHeader` | render the `label` row above the content. Defaults true for `panel`, false for `mega` |
+| `align` | `"start"` (default) or `"end"` |
+
+### `ProfileSlot`
+
+| Field | |
+|---|---|
+| `initials` | text inside the gradient circle. Ignored when `avatar` is set |
+| `avatar` | full replacement for the circle |
+| `label` | accessible name for the toggle. Default `"Profile"` |
+| `menu` | menu body. **Nothing renders when absent** — no default menu, no default logout link. `ProfileMenu` below is the identity block that usually goes here |
 
 ### `NavItem`
 
 ```ts
-{ navigationId?, title?, href?, icon?, caption?, children?, suffix?, suffixColor?, type?, event? }
+{ navigationId?, title?, href?, icon?, caption?, children?, defaultOpen?, suffix?, suffixColor?,
+  type?, event? }
 ```
 
 Exactly one of three kinds: `caption` → section heading; `children` → collapsible group (one level);
 otherwise a leaf. `icon` is usually a **class-name string** (`"bi bi-house"`) rendered as
 `<i className={icon} />`, matching what a navigation API returns; a ReactNode also works.
+`defaultOpen` forces a group open regardless of the route — an override, not the usual mechanism,
+since a group already opens itself when one of its children matches the current URL.
 
 `type` is `"LINK"` (the default) or `"CLICK"`. A `CLICK` row has no destination: it renders as a
 `<button>` and runs `event`. Group and caption rows ignore both — a group row toggles its own panel
 and is neither a destination nor an action.
+
+It is one interface of optional fields rather than a discriminated union, deliberately. A union
+would stop `NavItem` being an `interface`, so your own `interface Row extends NavItem` would break
+on a minor version — and it would type-check one of the four kinds while the other three stayed
+prose. The kinds are enforced where they are decided, in `Sidebar`'s dispatch.
 
 ### CLICK rows need `script-src 'unsafe-eval'`
 
@@ -167,6 +222,11 @@ navigationType, navigationEvent }`, sorts numerically by `navigationOrder`, buil
 group per distinct `navigationGroup` positioned at its **lowest** child order, and leaves ungrouped
 rows as leaves. A row with no order sorts last, in input order.
 
+`navigationType` is matched case-insensitively, and only an exact `"CLICK"` produces an action row —
+anything else is a link, so a null or lowercase value navigates rather than evaluates. A CLICK row's
+`navigationPath` is dropped rather than kept: it is `'#'` in the reference data, which resolves to
+the site root and would light the row on `/`.
+
 It does **not** filter by status or role. Dropping rows is an authorization decision, and a shell
 package that silently hides one hides a bug in your ACL. Filter first.
 
@@ -180,17 +240,20 @@ row stays aligned.
 
 ## Brand
 
-Nothing about the brand is hard-coded. `Favicon`, `Logo` and `AuthLogo` all take:
+Nothing about the brand is hard-coded. `BrandMark` is the gradient box on its own; `Favicon` is the
+mark plus a collapsing wordmark (the desktop lockup), `Logo` is the mark alone (the sub-`lg` header
+slot), and `AuthLogo` is the stacked lockup for a login page.
 
-| Prop | |
-|---|---|
-| `brandName` | the wordmark. Defaults to the exported `DEFAULT_BRAND_NAME` placeholder — compare against it to tell "nobody set this" from "someone chose this" |
-| `mark` | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
-| `markSrc` / `markAlt` | convenience for an image mark — renders an `<img>` sized to the glyph box |
-| `wordmarkSrc` / `wordmarkAlt` | `Favicon` only. Renders the wordmark as an IMAGE instead of `brandName` text — a supplied logo file. Independent of `markSrc`: a tenant usually has a favicon-shaped mark AND a full logo at two different endpoints. Height-driven via `--il-brand-wordmark-height` (32px), capped by `--il-brand-wordmark-max-width` (180px). `wordmarkAlt` defaults to `brandName` — the image is the only thing naming the brand |
-| `size` | box size in px; radius, glyph and glow all derive from it |
-| `bare` | drops the gradient box, glow and radius, and shows the glyph at **full** size. `size` then means HEIGHT, not a box: the artwork keeps its own aspect ratio, capped at `--il-mark-max-width` (default `size × 5`). For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork and paints a 759×458 wordmark at 32×19 |
-| `tagline` | `AuthLogo` only. `null` removes it |
+| Prop | On | |
+|---|---|---|
+| `brandName` | `Favicon` `AuthLogo` | the wordmark. Defaults to the exported `DEFAULT_BRAND_NAME` placeholder (`"Executive Insight"`) — compare against it to tell "nobody set this" from "someone chose this". `Logo` renders no wordmark and takes none |
+| `mark` | all | **any element** rendered in the gradient box: a `lucide-react` icon, an MUI icon, an inline `<svg>`, an `<img>`, text |
+| `markSrc` / `markAlt` | all | convenience for an image mark — renders an `<img>` sized to the glyph box |
+| `wordmarkSrc` / `wordmarkAlt` | `Favicon` | renders the wordmark as an IMAGE instead of `brandName` text — a supplied logo file. Independent of `markSrc`: a tenant usually has a favicon-shaped mark AND a full logo at two different endpoints. Height-driven via `--il-brand-wordmark-height` (32px), capped by `--il-brand-wordmark-max-width` (180px). `wordmarkAlt` defaults to `brandName` — the image is the only thing naming the brand |
+| `size` | all | box size in px; radius, glyph and glow all derive from it. Default 32, and 48 on `AuthLogo` |
+| `bare` | all | drops the gradient box, glow and radius, and shows the glyph at **full** size. `size` then means HEIGHT, not a box: the artwork keeps its own aspect ratio, capped at `--il-mark-max-width` (default `size × 5`). For a supplied favicon or logo file that already carries its own shape — the default boxes someone else's artwork and paints a 759×458 wordmark at 32×19 |
+| `miniSidebar` | `Favicon` | collapses the wordmark to zero width. Drive it from the same state as the sidebar |
+| `tagline` | `AuthLogo` | the pill under the wordmark, default `"Enterprise"`. `null` removes it |
 
 ```jsx
 import { Rocket } from "lucide-react";
@@ -256,6 +319,36 @@ then it is a duplicate reading. Supply `initials` with no `name` and it becomes
 `role="img"` with the letters as its label, because it is then the only identity
 on screen and hiding it would leave the accessibility tree with nothing.
 
+## Exports
+
+Everything below is on the main entry; the `./brand` subset is in Entry points above.
+
+**Components** — `FullLayout`, `Header`, `Sidebar`, `NavItemContainer`, `NavSubMenu`, `IconButton`,
+`ProfileMenu`, `BrandMark`, `Favicon`, `Logo`, `AuthLogo`, `MenuIcon`, `SearchIcon`.
+
+`Header` and `Sidebar` are exported for a shell you assemble yourself — `FullLayout` is the wiring
+between them, not a wrapper that hides them. Both take a `staggerDelay` (seconds per row, `0`
+disables the entry animation) that `FullLayout` does not forward, so render them directly if you
+want it. `NavItemContainer` and `NavSubMenu` are the row primitives underneath the sidebar.
+
+**Functions** — `toNavItems` (raw rows → `NavItem[]`) and `initialsFrom` (name → two letters).
+
+**Hooks** — the three `FullLayout` itself uses, exported so a hand-assembled shell does not
+re-derive them:
+
+| Hook | |
+|---|---|
+| `useHeaderAutoHide({ shellRef, headerSelector?, enabled? })` | → `{ hidden, topbarHeight }`. Tracks scroll direction and measures `--il-topbar-height` off the shell element. `shellRef` is load-bearing: this package declares nothing on `:root`, so reading `documentElement` instead would report `null` forever and the sidebar would never dock |
+| `useIsDesktop(query = LG_QUERY)` | `matchMedia`, SSR-safe |
+| `useDrawerChrome({ open, onClose, pathname, isDesktop })` | the three dismissals a drawer needs but its own markup cannot own — Escape, route change, crossing up into desktop — plus a body scroll lock that saves and restores the host's own `overflow` |
+
+**Constants** — `LG_BREAKPOINT` (992), `LG_QUERY`, `DEFAULT_MOBILE_SIDEBAR_ID`
+(`"il-mobile-sidebar"`), `DEFAULT_BRAND_NAME`.
+
+**Types** — `NavItem`, `NavItemType`, `NavigationRow`, `ToNavItemsOptions`, `HeaderDropdownSlot`,
+`ProfileSlot`, `SidebarUser`, `Translate`, `ShellGeometry`, plus the props type of every component
+listed above.
+
 ## Token contract
 
 The package declares **nothing** on `:root`. Every token it reads is aliased onto its own scope as
@@ -271,6 +364,9 @@ it and the vendored value renders the shell where you do not. Priority falls out
 no load-order rule to get wrong, and no `@layer`. Rules are deliberately unlayered so they beat
 unlayered global resets.
 
+`.il-brand` is the second scope for a reason: `AuthLogo` renders on a login page, outside any shell,
+and would otherwise have no tokens at all.
+
 **Specificity, honestly:** unlayered beats an unlayered reset only where this package's selector is
 *more* specific. Against an EQUAL-specificity Bootstrap rule — `.navbar` vs `.il-topbar`,
 `.dropdown` vs `.il-mega` — the cascade falls through to source order, and a host importing
@@ -278,12 +374,33 @@ Bootstrap after this sheet wins. Those cases are written as compound selectors
 (`.il-topbar.navbar`, `.il-mega.dropdown`) so load order stops mattering. If you add a rule whose
 class sits on an element that also carries a Bootstrap component class, do the same.
 
-26 tokens are consumed; the alias block is generated by `pnpm sync:tokens` from the live design-system
-sheet and `pnpm sync:tokens:check` fails CI when the vendored copy drifts.
+29 tokens are consumed; the alias block is generated by `pnpm sync:tokens` from the live design-system
+sheet and `pnpm sync:tokens:check` fails CI when the vendored copy drifts. The seed set is scraped
+from `styles.css` itself, so using a new `--il-t-*` is enough for the next run to vendor it, and
+dropping one removes it — there is no hand-maintained list.
 
 **The remote sheet is never `@import`ed.** An `@import` is all-or-nothing — it would also ship a
 `body` background, a Google Fonts request and a pile of component classes, and would need a CSP
 allowance from every consumer.
+
+### Light and dark
+
+Dark is the default. The light palette is vendored the same way and fires on three selectors,
+because a host can express "light" three ways:
+
+```css
+[data-mui-color-scheme="light"]                      /* MUI's attribute */
+[data-theme="light"]                                 /* a bare data-theme */
+:root:not([data-mui-color-scheme]):not([data-theme]) /* neither, plus prefers-color-scheme: light */
+```
+
+The third is guarded on a root carrying neither attribute, so a host running dark mode on a
+light-preference machine is not dragged into light. Set either attribute and the OS preference stops
+being consulted.
+
+The same three selectors also paint `.il-content-area` in `--il-t-surface`, so the content column
+follows the scheme instead of showing the host's `body` through it. If you add a scheme-dependent
+rule, keep all three in step.
 
 ### Geometry is `--il-*`, not `--il-t-*`
 
@@ -325,6 +442,8 @@ fight whatever you already load.
 - `<button>`s carrying `.nav-link` get their UA cursor, background, border, alignment, line-height
   and fit-content width reset, so a control row is the same box as a link row rather than a form
   control parked in the nav.
+- Nav rows are `<li>`s directly inside the `<ul>`, never the source's `ul > div > li` — that nesting
+  is a serious WCAG 1.3.1 failure and costs screen-reader users the list semantics entirely.
 - The overlay is a `<button>` with an accessible name, not a `<div>`.
 - Auto-hide never fires while focus is inside the header, because hiding marks it `inert` and that
   would drop focus to `<body>`.
@@ -332,12 +451,20 @@ fight whatever you already load.
 ## Development
 
 ```bash
-pnpm verify           # typecheck → tests → build
-pnpm test             # vitest + jsdom + axe
+pnpm verify           # typecheck → typecheck:brand → vitest → build
+pnpm test             # 124 tests: vitest + jsdom + axe
 pnpm test:brand       # Playwright: var() cascade and real layout maths
-pnpm storybook
-pnpm sync:tokens      # regenerate the alias block
+pnpm sync:tokens      # regenerate the alias block (--check fails CI on drift)
 ```
+
+`pnpm test:brand` runs headless Chromium against a `data:` URL built from `styles.css` — no dev
+server and no host app, so it stays runnable in CI. It needs the browser installed once
+(`pnpm exec playwright install chromium`). Both specs exist because jsdom provably cannot do their
+job: it neither resolves a `var()` cascade nor lays anything out, and three of the geometry bugs they
+cover produced no error anywhere — only a wrong pixel.
+
+The `storybook` and `build-storybook` scripts are still in `package.json`, but no `.storybook` config
+and no stories are committed yet, so neither runs as-is.
 
 There is no ESLint, on purpose — the version pinned in the consuming starter kit is broken, and a
 second lint config that disagrees with it is worse than none.
