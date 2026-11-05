@@ -68,6 +68,13 @@ export interface FullLayoutProps
   /** Sub-lg brand mark — the `/rest/client/logo/<id>` artwork. Defaults to `<Logo />`. */
   logo?: ReactNode;
 
+  /**
+   * Rendered at the bottom of the content column, after `children`. Pass a
+   * `<Footer />`. No default — a shell package has no copyright line to print.
+   * Present → the column pins it to the bottom on short pages.
+   */
+  footer?: ReactNode;
+
   /* ── sidebar slots ────────────────────────────────────────────────────── */
   sidebarHeader?: ReactNode | null;
   sidebarUser?: SidebarUser;
@@ -99,6 +106,7 @@ export function FullLayout({
   pathname,
   favicon,
   logo,
+  footer,
   sidebarHeader,
   sidebarUser,
   sidebarFooter,
@@ -190,7 +198,9 @@ export function FullLayout({
           </AnimatePresence>
 
           <div
-            className={`il-content-area ${isTopbarFixed ? "il-fixed-topbar" : ""} ${contentClassName}`
+            className={`il-content-area ${isTopbarFixed ? "il-fixed-topbar" : ""} ${
+              footer ? "il-has-footer" : ""
+            } ${contentClassName}`
               .replace(/\s+/g, " ")
               .trim()}
           >
@@ -212,6 +222,7 @@ export function FullLayout({
             ) : (
               children
             )}
+            {footer}
           </div>
         </div>
       </div>

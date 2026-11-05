@@ -32,6 +32,25 @@ describe("FullLayout", () => {
     expect(content).toContainElement(screen.getByText("page body"));
   });
 
+  it("renders the footer slot after children, inside the content area, and flags the column", () => {
+    const { container } = render(
+      <FullLayout navItems={navItems} pathname="/home" footer={<footer>site footer</footer>}>
+        <p>page body</p>
+      </FullLayout>,
+    );
+    const content = container.querySelector(".il-content-area") as HTMLElement;
+    expect(content).toHaveClass("il-has-footer");
+    expect(content).toContainElement(screen.getByText("site footer"));
+    const body = screen.getByText("page body");
+    const foot = screen.getByText("site footer");
+    expect(body.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("does not flag the column when no footer is given", () => {
+    const { container } = render(<FullLayout navItems={navItems} pathname="/home" />);
+    expect(container.querySelector(".il-content-area")).not.toHaveClass("il-has-footer");
+  });
+
   it("maps controlled state onto shell classes", () => {
     const { container, rerender } = render(<FullLayout navItems={navItems} pathname="/" />);
     expect(shell(container)).not.toHaveClass("il-is-mini");

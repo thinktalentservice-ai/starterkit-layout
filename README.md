@@ -133,6 +133,19 @@ pill; a node replaces it), `profile`, `headerEndSlot`.
 `sidebarUser` — `{ initials?, name?, avatar? }` — fills it, and `sidebarFooter` renders after the
 nav, inside the scroller.
 
+**Footer:** `footer` renders at the bottom of the content column, after `children`. No default —
+pass a `<Footer />`. When present the column pins it to the bottom on short pages.
+
+```jsx
+import { FullLayout, Footer } from "@devopsnext/starterkit-layout";
+
+<FullLayout footer={<Footer siteName="Think Talent" siteHref="https://example.com" />} … />
+```
+
+`Footer` props: `year` (default current year), `siteName`, `siteHref` (name is plain text without
+it), `startSlot` / `endSlot` (side columns — a language picker belongs in `endSlot`), `children`
+(replaces the whole `© year | name` centre).
+
 ### `HeaderDropdownSlot`
 
 The package owns the toggle and the panel chrome; the content is entirely yours.
@@ -324,7 +337,7 @@ on screen and hiding it would leave the accessibility tree with nothing.
 Everything below is on the main entry; the `./brand` subset is in Entry points above.
 
 **Components** — `FullLayout`, `Header`, `Sidebar`, `NavItemContainer`, `NavSubMenu`, `IconButton`,
-`ProfileMenu`, `BrandMark`, `Favicon`, `Logo`, `AuthLogo`, `MenuIcon`, `SearchIcon`.
+`ProfileMenu`, `Footer`, `BrandMark`, `Favicon`, `Logo`, `AuthLogo`, `MenuIcon`, `SearchIcon`.
 
 `Header` and `Sidebar` are exported for a shell you assemble yourself — `FullLayout` is the wiring
 between them, not a wrapper that hides them. Both take a `staggerDelay` (seconds per row, `0`
