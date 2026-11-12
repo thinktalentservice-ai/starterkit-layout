@@ -58,11 +58,11 @@ const SHELL_MARKUP = `
 const NAV_RESET_CSS = `ul.nav { padding-left: 0; margin: 0; list-style: none; }`;
 
 const NAV_MARKUP = `
-  <div class="il-sidebar-nav pt-1 mt-2">
+  <div class="il-sidebar-nav">
     <ul class="nav flex-column">
       <li>
         <div class="nav-item il-active-link">
-          <a class="gap-3 nav-link mb-2" id="active-row" href="#"><span>My Tasks</span></a>
+          <a class="gap-3 nav-link" id="active-row" href="#"><span>My Tasks</span></a>
         </div>
       </li>
     </ul>
@@ -75,16 +75,16 @@ const NAV_MARKUP = `
    `button.nav-link` reset in styles.css the CLICK row shrink-wraps its label
    while the anchor beside it spans the column. */
 const NAV_MARKUP_BOTH_KINDS = `
-  <div class="il-sidebar-nav pt-1 mt-2">
+  <div class="il-sidebar-nav">
     <ul class="nav flex-column">
       <li>
         <div class="nav-item">
-          <a class="nav-link mb-2" id="link-row" href="#"><span>My Tasks</span></a>
+          <a class="nav-link" id="link-row" href="#"><span>My Tasks</span></a>
         </div>
       </li>
       <li>
         <div class="nav-item">
-          <button type="button" class="nav-link mb-2" id="click-row"><span>Help</span></button>
+          <button type="button" class="nav-link" id="click-row"><span>Help</span></button>
         </div>
       </li>
     </ul>
@@ -373,4 +373,50 @@ test("keyboard focus is visible on a sidebar row, and its ring is drawn inside t
   expect(outline.style).toBe("solid");
   expect(outline.width).toBe("2px");
   expect(parseFloat(outline.offset)).toBeLessThan(0);
+});
+
+test("nav rows keep the same height and pitch expanded and collapsed, whatever the icon font metrics", async ({
+  page,
+}) => {
+  /* The reported bug: a row was `padding + tallest child`. Expanded the tallest
+     child is the 13px label; collapsed the label is display:none, so it is the
+     icon — and an icon font with `line-height: 1` (FontAwesome, mdi) is shorter
+     than the label. Rows came out 2-8px shorter collapsed than expanded, and the
+     column's rhythm changed on every toggle. Computed padding, margin and gap were
+     identical in both states, which is why comparing them found nothing. Fixed
+     --il-row-height makes the box independent of the glyph; three icon sizes pin
+     it, including a 24px one that is TALLER than the label. */
+  const row = (id: string, fontSize: number) => `
+      <li><div class="nav-item">
+        <a class="nav-link" id="${id}" href="#">
+          <span class="il-nav-icon d-flex align-items-center"><i style="display:inline-block;font-size:${fontSize}px;line-height:1">&#9632;</i></span>
+          <span class="il-hide-mini w-100"><span>Label</span></span>
+        </a>
+      </div></li>`;
+  const markup = `
+  <div class="il-sidebar-nav"><ul class="nav flex-column">
+    ${row("r13", 13)}${row("r18", 18)}${row("r24", 24)}
+  </ul></div>`;
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setContent(shellHtml(`${NAV_RESET_CSS} .d-flex{display:flex} .align-items-center{align-items:center} .w-100{width:100%}`, markup));
+
+  const measure = async () => {
+    const out: { h: number; y: number }[] = [];
+    for (const id of ["r13", "r18", "r24"]) {
+      const bb = (await page.locator(`#${id}`).boundingBox())!;
+      out.push({ h: bb.height, y: bb.y });
+    }
+    return out;
+  };
+
+  const expanded = await measure();
+  await addShellClass(page, "il-is-mini");
+  await page.waitForTimeout(400);
+  const mini = await measure();
+
+  for (const rows of [expanded, mini]) {
+    for (const r of rows) expect(r.h).toBeCloseTo(40, 1);
+    expect(rows[1].y - rows[0].y).toBeCloseTo(48, 1);
+    expect(rows[2].y - rows[1].y).toBeCloseTo(48, 1);
+  }
 });

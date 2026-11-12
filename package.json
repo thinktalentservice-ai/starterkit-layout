@@ -1,6 +1,6 @@
 {
   "name": "@devopsnext/starterkit-layout",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Obsidian dashboard shell — FullLayout, Header chrome, vertical Sidebar. Token-driven, controlled, slot-based.",
   "license": "MIT",
   "type": "module",
@@ -34,6 +34,7 @@
   "scripts": {
     "build": "tsc --noEmit && tsup",
     "build-storybook": "storybook build -o docs --disable-telemetry && node -e \"require('node:fs').writeFileSync('docs/.nojekyll', '')\"",
+    "build:storybook": "pnpm build-storybook",
     "dev": "tsup --watch",
     "storybook": "storybook dev -p 6008 --no-open --disable-telemetry",
     "sync:tokens": "node scripts/sync-tokens.mjs",
@@ -65,6 +66,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "axe-core": "^4.10.3",
+    "bootstrap": "5.3.8",
     "jsdom": "^26.1.0",
     "lucide-react": "^1.16.0",
     "motion": "^12.39.0",

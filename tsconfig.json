@@ -20,5 +20,5 @@
     "verbatimModuleSyntax": true,
     "types": ["vitest/globals", "node"]
   },
-  "include": ["src", "tsup.config.ts", "vitest.config.ts"]
+  "include": ["src", ".storybook", "tsup.config.ts", "vitest.config.ts"]
 }

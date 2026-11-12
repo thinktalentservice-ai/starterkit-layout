@@ -349,7 +349,7 @@ describe("CLICK rows", () => {
     const { container } = render(
       <Sidebar navItems={[{ ...clickRow, suffix: "2", suffixColor: "bg-danger" }]} />,
     );
-    const button = container.querySelector("button.nav-link.mb-2");
+    const button = container.querySelector("button.nav-link");
     expect(button).toBeInTheDocument();
     expect(button?.querySelector(".il-nav-icon i.mdi.mdi-help-circle")).toBeInTheDocument();
     expect(button?.querySelector(".badge")).toHaveTextContent("2");
