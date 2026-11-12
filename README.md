@@ -476,8 +476,10 @@ server and no host app, so it stays runnable in CI. It needs the browser install
 job: it neither resolves a `var()` cascade nor lays anything out, and three of the geometry bugs they
 cover produced no error anywhere — only a wrong pixel.
 
-The `storybook` and `build-storybook` scripts are still in `package.json`, but no `.storybook` config
-and no stories are committed yet, so neither runs as-is.
+`pnpm storybook` serves the stories on :6008; `pnpm build-storybook` (alias `pnpm build:storybook`)
+writes a static site to `docs/`. Config is `.storybook/`; stories sit beside the source as
+`src/**/*.stories.tsx` and never ship (tsup bundles two entries, `files` is `dist` + `styles.css`).
+`bootstrap` is a devDependency for Storybook only — the package itself still does not depend on it.
 
 There is no ESLint, on purpose — the version pinned in the consuming starter kit is broken, and a
 second lint config that disagrees with it is worse than none.
