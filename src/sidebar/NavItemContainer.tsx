@@ -99,8 +99,12 @@ export function NavItemContainer({
      stylesheet does to a <button> on top of that — cursor, background, borders,
      line-height, fit-content width — is undone by `.il-sidebar-area
      button.nav-link` in styles.css, not here. */
+  // No `mb-2` here: the 8px row gap lives in ONE place, `margin-bottom` on
+  // `.il-sidebar-area .nav-link`. A utility is `!important`, so carrying it on leaf
+  // rows only (not the group toggle or sub-rows) once made leaves 8px apart and
+  // everything else 2px apart.
   const rowProps = {
-    className: "nav-link mb-2",
+    className: "nav-link",
     initial: "rest",
     whileHover: "hover",
     animate: "rest",

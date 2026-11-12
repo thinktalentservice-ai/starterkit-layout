@@ -161,6 +161,14 @@
   --il-sidebar-width: 240px;
   --il-mini-sidebar-width: 80px;
   --il-topbar-height: 59px;
+  /* Nav row heights, FIXED. A row used to be `padding + tallest child`, and the
+     tallest child changes with the sidebar: expanded it is the label, collapsed the
+     label is display:none so it is the icon. An icon font with `line-height: 1`
+     (FontAwesome, mdi) is shorter than a 13px label, so collapsed rows came out
+     2-8px shorter than expanded ones and the column's rhythm changed on toggle.
+     A constant height makes the row independent of both. */
+  --il-row-height: 40px;
+  --il-sub-row-height: 36px;
 
   /* THE ICON RAIL.
 
@@ -1010,7 +1018,11 @@
 
      Right padding stays 16px: it is the gap before the sidebar's own border, not
      part of the rail. */
-  padding: 10px 16px 10px max(0px, calc(var(--il-rail-center) - 12px));
+  /* Vertical padding is 0 and the height is fixed (--il-row-height): the row is
+     centred by align-items, so its box no longer depends on icon or label metrics. */
+  box-sizing: border-box;
+  height: var(--il-row-height);
+  padding: 0 16px 0 max(0px, calc(var(--il-rail-center) - 12px));
   /* Square, deliberately. A radius on a box that touches the sidebar's right
      border leaves two notches of sidebar background against that border, which
      reads as a rendering fault rather than as a rounded pill. */
@@ -1022,9 +1034,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-decoration: none;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
   transition: background 0.15s, color 0.15s, border-left 0.15s;
   border-left: 3px solid transparent;
+}
+
+/* Fixed line box for both children, so glyph metrics (an icon font's own
+   line-height) can never leak into the row. The row height above is fixed anyway;
+   this keeps the label and icon vertically centred identically in both states. */
+.il-sidebar-area .nav-link .il-nav-icon,
+.il-sidebar-area .nav-link .il-hide-mini {
+  line-height: 20px;
 }
 
 .il-sidebar-area .nav-link svg {
@@ -1110,7 +1130,8 @@
    here (visibility, not display, below), so the child label lands exactly one
    step past --il-label-x. */
 .il-submenu .nav-link {
-  padding: 8px 16px 8px calc(var(--il-rail-center) + 4px);
+  height: var(--il-sub-row-height);
+  padding: 0 16px 0 calc(var(--il-rail-center) + 4px);
 }
 
 .il-submenu .il-nav-icon {
@@ -1258,11 +1279,66 @@
   .il-is-mini .il-sidebar-area .il-sidebar-box:hover .il-hide-mini,
   .il-is-mini .il-sidebar-area .il-sidebar-box:hover .il-sidebar-username {
     display: block;
+    /* `display` cannot transition, so without this the label snaps in at full
+       opacity on the first frame of the 0.3s widening and is simply clipped by the
+       row's overflow:hidden — text visibly popping in at the box edge. */
+    animation: il-mini-reveal 0.2s ease-out both;
+  }
+
+  /* Hovering a row springs its icon to 1.2x (overshooting to ~1.3x) and slides its
+     label 4px — inline transforms from `motion`'s whileHover. In the expanded
+     sidebar that is a deliberate flourish; in the mini rail it lands in the middle
+     of the box widening, so every icon the pointer crosses jumps and rings while
+     the column is still moving: the "dancing". An author `!important` outranks an
+     inline style that is not itself important, so no change to Sidebar.tsx or the
+     motion variants is needed, and the expanded sidebar keeps its flourish. */
+  .il-is-mini .il-sidebar-area .nav-link .il-nav-icon,
+  .il-is-mini .il-sidebar-area .nav-link .il-hide-mini {
+    transform: none !important;
+  }
+
+  @keyframes il-mini-reveal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .il-is-mini .il-sidebar-area .il-sidebar-box:hover .il-hide-mini,
+    .il-is-mini .il-sidebar-area .il-sidebar-box:hover .il-sidebar-username,
+    .il-is-mini .il-sidebar-area .il-sidebar-box:hover .il-nav-caption {
+      animation: none;
+    }
   }
 
   .il-is-mini .il-sidebar-area .il-sidebar-box .il-sidebar-username,
   .il-is-mini .il-sidebar-area .il-sidebar-box .il-hide-mini {
     display: none;
+  }
+
+  /* The section caption is text that starts at --il-label-x (68px) in a column that is
+     80px wide in mini, so its first letter ("W" of WORKSPACE) stuck out at the rail's
+     edge. `visibility`, not `display`: the caption keeps its height, so the rows below
+     do not jump up when the rail collapses and back down when it widens on hover. */
+  .il-is-mini .il-sidebar-area .il-sidebar-box .il-nav-caption {
+    visibility: hidden;
+    /* Hidden is not weightless: `.nav` is a wrapping flex column, so its line is as wide
+       as its widest item, and the caption's 68px + 16px padding alone is 84px. Every
+       row beside it was stretched to 84px inside the 80px rail (clipped ~5px). Dropping
+       the inline padding while hidden keeps the caption from setting the line width;
+       the :hover rule below puts the label-aligned padding back. */
+    padding-left: 0;
+    padding-right: 0;
+    overflow: hidden;
+  }
+
+  .il-is-mini .il-sidebar-area .il-sidebar-box:hover .il-nav-caption {
+    visibility: visible;
+    /* Same values as the base `.il-nav-caption` rule — restated because the rule above
+       zeroed them at a specificity this selector does not override on its own. */
+    padding-left: var(--il-label-x);
+    padding-right: 16px;
+    overflow: visible;
+    animation: il-mini-reveal 0.2s ease-out both;
   }
 
   .il-sidebar-area {

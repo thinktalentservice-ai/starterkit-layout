@@ -157,7 +157,7 @@ export function Sidebar({
             column instead of reading as part of it. The gutter now lives on
             .il-sidebar-nav in styles.css, and the row's horizontal padding moved
             onto .nav-link — same text position, full-bleed background. */}
-        <div className="il-sidebar-nav pt-1 mt-2">
+        <div className="il-sidebar-nav">
           <Nav vertical>
             {navItems.map((navi, index) => {
               const common = {
