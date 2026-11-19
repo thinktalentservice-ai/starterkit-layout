@@ -1,0 +1,133 @@
+# On GitHub Release published: one build, then two independent publish actions.
+#   1. publish-npm   -> npm (token from the `npm` Environment secret NPM_TOKEN)
+#   2. deploy-pages  -> Storybook to GitHub Pages, only if Pages is already enabled
+# Both need the build to pass. A failure in one does not block the other.
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/ci.yml
+
+  publish-npm:
+    name: Publish to npm
+    needs: build # skipped if build fails
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: npm # secret NPM_TOKEN + optional approval gate
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Release tag must match package.json version
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          TAG="${GITHUB_REF_NAME#v}"
+          if [ "$PKG" != "$TAG" ]; then
+            echo "::error::Release tag '$GITHUB_REF_NAME' != package.json version '$PKG'"
+            exit 1
+          fi
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      - name: Publish (skip if version already on npm)
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VER=$(node -p "require('./package.json').version")
+          if npm view "$NAME@$VER" version >/dev/null 2>&1; then
+            echo "::warning::$NAME@$VER already on npm, skipping"
+            exit 0
+          fi
+          # Pre-release (1.6.0-beta.1) -> `next` dist-tag, never `latest`.
+          if [[ "$VER" == *-* ]]; then TAG_ARG="--tag next"; else TAG_ARG=""; fi
+          pnpm publish --no-git-checks --access public $TAG_ARG
+
+  check-pages:
+    name: Pages already enabled?
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.probe.outputs.enabled }}
+      build_type: ${{ steps.probe.outputs.build_type }}
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - id: probe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if RES=$(gh api "repos/${{ github.repository }}/pages" 2>/dev/null); then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "build_type=$(jq -r '.build_type // "legacy"' <<<"$RES")" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages not enabled for this repo, skipping Storybook deploy"
+          fi
+
+  # Pages is on but sourced from a branch. Pushing built output to a (possibly
+  # protected) branch from CI is fragile, so fail loudly instead of guessing.
+  pages-source-wrong:
+    name: Pages source must be GitHub Actions
+    needs: check-pages
+    if: needs.check-pages.outputs.enabled == 'true' && needs.check-pages.outputs.build_type != 'workflow'
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "::error::Pages is enabled with a branch source. Settings > Pages > Source must be 'GitHub Actions' for automated Storybook deploys."
+          exit 1
+
+  deploy-pages:
+    name: Deploy Storybook
+    needs: check-pages
+    if: needs.check-pages.outputs.enabled == 'true' && needs.check-pages.outputs.build_type == 'workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build Storybook
+        run: |
+          pnpm exec storybook build -o storybook-static --disable-telemetry
+          touch storybook-static/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: storybook-static
+      - id: deploy
+        uses: actions/deploy-pages@v4

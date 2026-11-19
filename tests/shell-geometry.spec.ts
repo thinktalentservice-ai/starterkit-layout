@@ -416,7 +416,7 @@ test("nav rows keep the same height and pitch expanded and collapsed, whatever t
 
   for (const rows of [expanded, mini]) {
     for (const r of rows) expect(r.h).toBeCloseTo(40, 1);
-    expect(rows[1].y - rows[0].y).toBeCloseTo(48, 1);
-    expect(rows[2].y - rows[1].y).toBeCloseTo(48, 1);
+    expect(rows[1]!.y - rows[0]!.y).toBeCloseTo(48, 1);
+    expect(rows[2]!.y - rows[1]!.y).toBeCloseTo(48, 1);
   }
 });
