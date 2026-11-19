@@ -1,0 +1,45 @@
+# Build gate. Runs on every push, every PR, and is reused (workflow_call) by the
+# release workflows so publish jobs can only start after this passes.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    tags-ignore: ["**"]
+  pull_request:
+  workflow_call:
+
+# New push to same ref cancels the stale run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.11.2
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      # `build` = tsc --noEmit && tsup
+      - name: Build
+        run: pnpm build
+
+      - name: Verify dist output exists
+        run: test -s dist/index.js && test -s dist/index.cjs && test -s dist/index.d.ts
