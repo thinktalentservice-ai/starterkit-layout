@@ -1,5 +1,5 @@
 # On GitHub Release published: one build, then two independent publish actions.
-#   1. publish-npm   -> npm (token from the `npm` Environment secret NPM_TOKEN)
+#   1. publish-npm   -> npm (token from the `npm-publish` Environment secret NPM_TOKEN)
 #   2. deploy-pages  -> Storybook to GitHub Pages, only if Pages is already enabled
 # Both need the build to pass. A failure in one does not block the other.
 name: Release
@@ -20,7 +20,7 @@ jobs:
     needs: build # skipped if build fails
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: npm # secret NPM_TOKEN + optional approval gate
+    environment: npm-publish # secret NPM_TOKEN + optional approval gate
     permissions:
       contents: read
       id-token: write # npm provenance
