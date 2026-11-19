@@ -1,0 +1,133 @@
+# Publish Storybook to GitHub Pages when a Release is published.
+# Runs ONLY if Pages is already enabled for this repo, and ONLY if build passed.
+name: Publish Storybook to GitHub Pages
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/ci.yml
+
+  check-pages:
+    name: Pages already enabled?
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.probe.outputs.enabled }}
+      build_type: ${{ steps.probe.outputs.build_type }}
+      branch: ${{ steps.probe.outputs.branch }}
+      path: ${{ steps.probe.outputs.path }}
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - id: probe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if RES=$(gh api "repos/${{ github.repository }}/pages" 2>/dev/null); then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "build_type=$(jq -r '.build_type // "legacy"' <<<"$RES")" >> "$GITHUB_OUTPUT"
+            echo "branch=$(jq -r '.source.branch // ""' <<<"$RES")" >> "$GITHUB_OUTPUT"
+            echo "path=$(jq -r '.source.path // "/"' <<<"$RES")" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::GitHub Pages not enabled for this repo, skipping deploy"
+          fi
+
+  # Pages source = "GitHub Actions"
+  deploy-actions:
+    name: Deploy (Actions source)
+    needs: check-pages
+    if: needs.check-pages.outputs.enabled == 'true' && needs.check-pages.outputs.build_type == 'workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.11.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build Storybook
+        run: |
+          pnpm exec storybook build -o storybook-static --disable-telemetry
+          touch storybook-static/.nojekyll
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: storybook-static
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+  # Pages source = "Deploy from a branch" (gh-pages, or main /docs)
+  deploy-branch:
+    name: Deploy (branch source)
+    needs: check-pages
+    if: needs.check-pages.outputs.enabled == 'true' && needs.check-pages.outputs.build_type != 'workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: github-pages
+    permissions:
+      contents: write # push built site to the Pages source branch
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.11.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build Storybook
+        run: |
+          pnpm exec storybook build -o "$RUNNER_TEMP/storybook-static" --disable-telemetry
+          touch "$RUNNER_TEMP/storybook-static/.nojekyll"
+
+      - name: Push to Pages source branch
+        env:
+          BRANCH: ${{ needs.check-pages.outputs.branch }}
+          SRC_PATH: ${{ needs.check-pages.outputs.path }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          DEST="$RUNNER_TEMP/pages-branch"
+          git clone --depth 1 --branch "$BRANCH" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$DEST"
+          TARGET="$DEST"
+          if [ "$SRC_PATH" = "/docs" ]; then TARGET="$DEST/docs"; fi
+          mkdir -p "$TARGET"
+          # wipe old site, keep .git
+          find "$TARGET" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$RUNNER_TEMP/storybook-static/." "$TARGET/"
+          cd "$DEST"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No site changes"; exit 0
+          fi
+          git commit -m "docs(storybook): publish ${GITHUB_REF_NAME} [skip ci]"
+          git push origin "$BRANCH"
