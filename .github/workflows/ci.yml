@@ -1,18 +1,21 @@
-# Build gate. Runs on every push, every PR, and is reused (workflow_call) by the
-# release workflows so publish jobs can only start after this passes.
+# Build gate. Runs on PRs, on every push to main, and is reused (workflow_call)
+# by release.yml so publish jobs can only start after this passes.
+#
+# Pushes to a PR branch are covered by the pull_request trigger, so `push` is
+# limited to main to avoid building every commit twice.
 name: CI
 
 on:
   push:
-    branches: ["**"]
-    tags-ignore: ["**"]
+    branches: [main]
   pull_request:
+  workflow_dispatch:
   workflow_call:
 
-# New push to same ref cancels the stale run.
+# Stale PR runs get cancelled by a newer push. Never cancel main/release runs.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -25,9 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # pnpm version comes from package.json "packageManager"
       - uses: pnpm/action-setup@v4
-        with:
-          version: 12.11.2
 
       - uses: actions/setup-node@v4
         with:
@@ -37,9 +39,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      # `build` = tsc --noEmit && tsup
-      - name: Build
-        run: pnpm build
+      # typecheck + typecheck:brand + vitest + build (tsc --noEmit && tsup)
+      - name: Verify
+        run: pnpm verify
 
-      - name: Verify dist output exists
+      - name: Check dist output exists
         run: test -s dist/index.js && test -s dist/index.cjs && test -s dist/index.d.ts
