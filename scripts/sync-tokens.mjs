@@ -1,7 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Regenerates the token-alias block inside styles.css from the Obsidian sheet.
+   Regenerates the token-alias block inside styles.css from the INSTALLED
+   @devopsnext/starterkit-theme preset sheet (presets/think.css).
 
-   THE CONTRACT: the remote sheet is primary, styles.css is the backup.
+   THE CONTRACT: the host's theme sheet is primary, styles.css is the backup.
+
+   WHY THE INSTALLED PACKAGE AND NOT THE CDN. This used to fetch
+   https://cdn.thinktalentws48.click/starterkit/colors_and_type.css — a third
+   copy of the palette, published by hand, that drifted from the npm package
+   (`--check` failed on a clean main) and could not be pinned. The theme is now
+   an exact-pinned devDependency, so the vendored defaults are the values of the
+   version this package is built and tested against, and a theme bump lands as a
+   reviewable diff in this block instead of a silent CDN change.
 
    That is enforced without `@layer` and without declaring `:root`. Every token
    the shell consumes is aliased once, on `.il-shell` itself, as
@@ -27,26 +36,34 @@
 
    NOT COVERED HERE, deliberately: the shell's three geometry values
    (--il-sidebar-width, --il-mini-sidebar-width, --il-topbar-height). They are
-   NOT design tokens — they are absent from colors_and_type.css, which lives in
-   the theme package, and were only ever declared on :root by the host app's own
+   NOT design tokens — they are absent from the theme's preset sheet, and were
+   only ever declared on :root by the host app's own
    _variables.scss. Aliasing them would make the `missing` check below throw.
    They are hand-declared in styles.css under --il-, one dash short of --il-t-,
    so the scraper's `--il-t-[\w-]+` pattern cannot pick them up. Keep it that way.
 
      node scripts/sync-tokens.mjs                 rewrite the block
      node scripts/sync-tokens.mjs --check         exit 1 if stale (CI)
-     node scripts/sync-tokens.mjs --source=<path> read a local sheet instead
+     node scripts/sync-tokens.mjs --source=<path|url> read another sheet instead
 
-   `--source` exists for offline work and for regenerating against a checkout of
-   the design system before it is published to the CDN. It is not a second
-   source of truth: the default is the URL, and `--check` in CI runs without it.
+   `--source` exists for regenerating against an unpublished theme checkout. It
+   is not a second source of truth: the default is the installed package, and
+   `--check` in CI runs without it.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-const DEFAULT_SOURCE = "https://cdn.thinktalentws48.click/starterkit/colors_and_type.css";
+const THEME_SHEET = "@devopsnext/starterkit-theme/presets/think.css";
+/* Resolved through the theme's own `exports` ("./presets/*.css"), so a theme
+   that stops shipping the sheet fails here, loudly, instead of syncing nothing. */
+const DEFAULT_SOURCE = createRequire(import.meta.url).resolve(THEME_SHEET);
+/* `./package.json` is not an exported subpath of the theme; read it beside the sheet. */
+const THEME_VERSION = JSON.parse(
+  readFileSync(join(dirname(dirname(DEFAULT_SOURCE)), "package.json"), "utf8"),
+).version;
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const TARGET = join(ROOT, "styles.css");
 
@@ -187,7 +204,7 @@ const flipped = seeds.filter((name) => declare(name, darkOf, "") !== declare(nam
 const lightBlock = (indent) => flipped.map((name) => declare(name, lightOf, indent)).join("\n");
 
 const block = `${START}
-/* Source: ${DEFAULT_SOURCE} — regenerate with \`pnpm sync:tokens\`.
+/* Source: ${sourceArg ? SOURCE : `${THEME_SHEET} @ ${THEME_VERSION}`} — regenerate with \`pnpm sync:tokens\`.
    Each alias is \`var(<host token>, <vendored default>)\`: the host's sheet wins
    whenever it defines the token, these values render the shell when it does
    not. Scoped to ${SCOPE} — this file declares nothing on :root. */
