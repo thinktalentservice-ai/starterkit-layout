@@ -1,6 +1,6 @@
 {
   "name": "@devopsnext/starterkit-layout",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "Obsidian dashboard shell — FullLayout, Header chrome, vertical Sidebar. Token-driven, controlled, slot-based.",
   "license": "MIT",
   "packageManager": "pnpm@12.11.2",
@@ -45,9 +45,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:brand": "playwright test",
-    "verify": "pnpm typecheck && pnpm typecheck:brand && pnpm test && pnpm build"
+    "verify": "pnpm typecheck && pnpm typecheck:brand && pnpm sync:tokens:check && pnpm test && pnpm build"
   },
   "peerDependencies": {
+    "@devopsnext/starterkit-theme": "^1.7.0",
     "motion": ">=12",
     "react": ">=18",
     "react-dom": ">=18",
@@ -55,6 +56,7 @@
     "simplebar-react": ">=3.3"
   },
   "devDependencies": {
+    "@devopsnext/starterkit-theme": "1.7.0",
     "@playwright/test": "^1.62.1",
     "@storybook/addon-a11y": "^10.5.6",
     "@storybook/addon-docs": "^10.5.6",
@@ -92,5 +94,10 @@
     "sidebar",
     "design-system",
     "obsidian"
-  ]
+  ],
+  "peerDependenciesMeta": {
+    "@devopsnext/starterkit-theme": {
+      "optional": true
+    }
+  }
 }

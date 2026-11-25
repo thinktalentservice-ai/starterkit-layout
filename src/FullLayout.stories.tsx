@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Bell, Home, LayoutGrid, Settings, Users } from "lucide-react";
 import { FullLayout } from "./FullLayout";
@@ -70,3 +70,21 @@ export const Expanded: Story = {};
 export const Mini: Story = { args: { miniSidebar: true } };
 
 export const Rtl: Story = { args: { isRTL: true } };
+
+/** Light scheme: the content column and topbar go light, the RAIL STAYS DARK with
+ *  white ink (1.7.0) — `.il-sidebar-area` reads `--sidebar-bg` / `--sidebar-fg*`,
+ *  not the scheme's `--fg1/--fg2`. The attribute goes on `<html>`, as in a host. */
+export const LightScheme: Story = {
+  decorators: [(Story) => <LightRoot><Story /></LightRoot>],
+};
+
+/** Sets the scheme attribute on `<html>` for this story only, and removes it on
+ *  unmount so the next story is not left in light. */
+function LightRoot({ children }: { children: React.ReactNode }) {
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute("data-mui-color-scheme", "light");
+    return () => root.removeAttribute("data-mui-color-scheme");
+  }, []);
+  return <>{children}</>;
+}
