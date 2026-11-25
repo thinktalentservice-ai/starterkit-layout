@@ -61,9 +61,6 @@ web_modules/
 
 # Output of 'npm pack'
 *.tgz
-# The theme tarball this package builds and tests against, until that version is
-# on npm. Then: devDependency -> exact npm version, delete vendor/.
-!vendor/*.tgz
 
 # Yarn Integrity file
 .yarn-integrity
