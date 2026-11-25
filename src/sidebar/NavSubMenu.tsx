@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { NavIcon } from "./NavIcon";
 import { runNavEvent } from "./runNavEvent";
 import type { NavItem as NavItemModel, Translate } from "../types";
+import { NavLabel } from "./NavLabel";
 
 const iconVariants = {
   rest: { scale: 1 },
@@ -94,8 +95,8 @@ export function NavSubMenu({
           </motion.span>
           <motion.span variants={labelVariants} className="il-hide-mini w-100">
             <div className="d-flex align-items-center">
-              <span className="d-block">{title}</span>
-              <span className="ms-auto d-flex align-items-center">
+              <NavLabel text={title ?? ""} />
+              <span className="il-nav-trail ms-auto d-flex align-items-center">
                 {suffix !== undefined && suffix !== null && suffix !== "" && (
                   <span className={`badge me-2 ${suffixColor ?? ""}`.trim()}>{suffix}</span>
                 )}
@@ -145,7 +146,7 @@ export function NavSubMenu({
                 <NavIcon icon={item.icon} />
               </motion.span>
               <motion.span variants={labelVariants} className="il-hide-mini">
-                <span>{t(item.title ?? "")}</span>
+                <NavLabel text={t(item.title ?? "")} />
               </motion.span>
             </>
           );

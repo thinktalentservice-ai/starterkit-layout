@@ -158,7 +158,7 @@
    the page at every width below lg, and the hamburger toggled the open class
    between 0 and 0. Negation must go through calc(); never write `-var(…)`. */
 .il-shell {
-  --il-sidebar-width: 240px;
+  --il-sidebar-width: 204px;
   --il-mini-sidebar-width: 80px;
   --il-topbar-height: 59px;
   /* Nav row heights, FIXED. A row used to be `padding + tallest child`, and the
@@ -430,7 +430,7 @@
   background: var(--il-t-surface);
   color: var(--il-t-fg2);
   font-family: var(--il-t-font-body);
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.5;
 }
 
@@ -536,7 +536,7 @@
 .il-role-badge {
   font-family: var(--il-t-font-body);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   padding: 3px 10px;
@@ -595,7 +595,7 @@
 .il-dd-header {
   font-family: var(--il-t-font-body);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--il-t-fg2);
@@ -796,7 +796,7 @@
      ink on a brand-coloured fill, not a themeable surface colour. */
   color: #fff;
   font-family: var(--il-t-font-heading);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--il-mark-glyph, 16px);
   line-height: 1;
 }
@@ -868,7 +868,7 @@
 
 .il-brand-name {
   font-family: var(--il-t-font-heading);
-  font-weight: 700;
+  font-weight: 600;
   font-size: var(--il-brand-name-size, 16px);
   letter-spacing: -0.2px;
   color: var(--il-t-fg1);
@@ -880,7 +880,7 @@
 .il-brand-tagline {
   font-family: var(--il-t-font-body);
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: var(--il-t-secondary-text);
@@ -979,11 +979,25 @@
   padding: 0 0 16px;
 }
 
+/* The nav list is reactstrap `<Nav vertical>` — Bootstrap's `ul.nav.flex-column`,
+   and `.nav` sets `flex-wrap: wrap`. A WRAPPING flex container sizes each line's
+   cross axis from its content, not from the container, so in a column the line is
+   as wide as the widest row's max-content: one long label made every <li> and its
+   row 470px in a 204px sidebar. The scroller then clipped the rows, the label was
+   never narrower than its text, and the ellipsis below could never trigger. A
+   vertical nav never legitimately wraps into a second column, so nowrap restores
+   the container's own width as the line width. Measured in a headed run, not
+   inferred: the probe that injected rows into a plain <ul> passed, the real
+   <Sidebar> did not. */
+.il-sidebar-area .il-sidebar-nav > .nav {
+  flex-wrap: nowrap;
+}
+
 /* Section caption */
 .il-nav-caption {
   font-family: var(--il-t-font-body);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--il-t-fg-muted);
@@ -1029,7 +1043,7 @@
   border-radius: 0;
   color: var(--il-t-fg2);
   font-family: var(--il-t-font-body);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -1045,6 +1059,72 @@
 .il-sidebar-area .nav-link .il-nav-icon,
 .il-sidebar-area .nav-link .il-hide-mini {
   line-height: 20px;
+}
+
+/* A label longer than the column truncates with an ellipsis rather than being
+   clipped mid-glyph by the row's overflow:hidden. Ellipsis needs a bounded box, and
+   every flex item between the row and the text defaults to min-width:auto — its
+   min-content width, i.e. the whole unwrapped label — so each one is released with
+   min-width:0. Miss one and the label shoves the badge and the group chevron off the
+   row instead of shrinking. The full text is unchanged in the accessible name, and
+   a truncated label shows it in .il-nav-tip (NavLabel.tsx) on hover and focus. */
+.il-sidebar-area .nav-link .il-hide-mini,
+.il-sidebar-area .nav-link .il-hide-mini > div {
+  min-width: 0;
+}
+
+.il-sidebar-area .nav-link .il-nav-label {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The trailing badge and chevron never shrink; the label gives way first. */
+.il-sidebar-area .nav-link .il-nav-trail,
+.il-sidebar-area .nav-link .il-hide-mini .badge {
+  flex-shrink: 0;
+}
+
+/* Full text of a truncated nav label, beside its row. Portaled into .il-shell (the
+   token alias scope) and fixed-positioned against the viewport, so the sidebar
+   scroller's overflow clipping cannot cut it. 1080 is Bootstrap's tooltip layer,
+   above the sticky topbar (100) and dropdowns (1000). It wraps rather than
+   truncating again, capped to the space beside the sidebar. */
+.il-nav-tip {
+  position: fixed;
+  z-index: 1080;
+  transform: translateY(-50%);
+  box-sizing: border-box;
+  max-width: min(320px, calc(100vw - var(--il-sidebar-width) - 24px));
+  padding: 6px 10px;
+  border: 1px solid var(--il-t-glass-border);
+  border-radius: 8px;
+  background: var(--il-t-surface-elevated);
+  box-shadow: var(--il-t-shadow-dropdown);
+  color: var(--il-t-fg1);
+  font-family: var(--il-t-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  animation: il-nav-tip-in 0.12s ease-out;
+}
+
+.il-nav-tip[data-rtl] {
+  transform: translate(-100%, -50%);
+}
+
+@keyframes il-nav-tip-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .il-nav-tip { animation: none; }
 }
 
 .il-sidebar-area .nav-link svg {

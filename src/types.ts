@@ -166,7 +166,7 @@ export type Translate = (key: string) => string;
  * sheet and are owned by this package. See the geometry block in styles.css.
  */
 export interface ShellGeometry {
-  /** Default 240. */
+  /** Default 204. */
   sidebarWidth?: number | string;
   /** Default 80. */
   miniSidebarWidth?: number | string;
