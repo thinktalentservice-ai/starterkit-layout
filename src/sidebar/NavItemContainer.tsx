@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { NavIcon } from "./NavIcon";
 import { runNavEvent } from "./runNavEvent";
 import type { NavItemType } from "../types";
+import { NavLabel } from "./NavLabel";
 
 const iconVariants = {
   rest: { scale: 1 },
@@ -82,7 +83,7 @@ export function NavItemContainer({
       </motion.span>
       <motion.span variants={labelVariants} className="il-hide-mini w-100">
         <div className="d-flex align-items-center">
-          <span>{title}</span>
+          <NavLabel text={title ?? ""} />
           {/* Rendered only when there is something to show. The source emitted an
               empty `.badge` on every row, which reserved padding and, worse, gave
               every nav link a stray empty element in its accessible name. */}

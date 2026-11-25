@@ -80,6 +80,19 @@ describe("Sidebar", () => {
     expect(badges[0]).toHaveClass("bg-danger");
   });
 
+  it("wraps every row label (leaf, group toggle, group child) in .il-nav-label", () => {
+    // Opens the Apps group, so leaf rows, the group toggle and group children are
+    // all in the DOM. The truncation CSS and the tooltip both key on .il-nav-label.
+    goTo("/apps/chat");
+    const { container } = render(<Sidebar navItems={items} t={(k) => k.toUpperCase()} />);
+    const labels = [...container.querySelectorAll(".il-nav-label")];
+    expect(labels.map((l) => l.textContent)).toEqual(["HOME", "REPORTS", "APPS", "CHAT", "MAIL"]);
+    // No native title: it would show a second, unstyled tooltip on every row.
+    for (const l of labels) expect(l).not.toHaveAttribute("title");
+    // The suffix badge sits beside the label, never inside it, so it cannot be truncated away.
+    expect(container.querySelector(".il-nav-label .badge")).toBeNull();
+  });
+
   it("applies `t` to titles and captions, and defaults to identity", () => {
     const { rerender, container } = render(<Sidebar navItems={items} />);
     expect(screen.getByText("Home")).toBeInTheDocument();

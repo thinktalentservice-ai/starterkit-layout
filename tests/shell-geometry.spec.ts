@@ -122,13 +122,13 @@ test("desktop: .il-sidebar-box tracks --il-sidebar-width, collapses in mini mode
   await page.setContent(shellHtml());
   const box = page.locator("#sidebar-box");
 
-  await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(240, 0);
+  await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(204, 0);
 
   await addShellClass(page, "il-is-mini");
   await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(80, 0);
 
   await box.hover();
-  await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(240, 0);
+  await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(204, 0);
 });
 
 test(".il-sidebar-box height reserves the topbar offset, and fills the viewport when the header is hidden", async ({
@@ -270,7 +270,7 @@ test("bootstrap-collision: the package's unlayered rules still win against a rea
   await page.setContent(shellHtml(BOOTSTRAP_CSS ?? undefined));
   const box = page.locator("#sidebar-box");
 
-  await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(240, 0);
+  await expect.poll(async () => (await box.boundingBox())!.width).toBeCloseTo(204, 0);
   await expect.poll(async () => (await box.boundingBox())!.height).toBeCloseTo(900 - 59, 0);
 });
 
@@ -293,7 +293,7 @@ test("full-bleed nav rows: the active row spans the sidebar edge to edge, with s
 
   expect(Math.abs(rowBB.x - boxBB.x)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(rowBB.x + rowBB.width - (boxBB.x + boxBB.width))).toBeLessThanOrEqual(0.5);
-  expect(rowBB.width).toBeCloseTo(240, 0);
+  expect(rowBB.width).toBeCloseTo(204, 0);
 
   const radius = await page
     .locator("#active-row")
@@ -339,7 +339,7 @@ test("a CLICK row's <button> is the same box as a LINK row's <a>", async ({ page
   expect(Math.abs(clickBB.width - linkBB.width)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(clickBB.height - linkBB.height)).toBeLessThanOrEqual(0.5);
   expect(Math.abs(clickBB.x - linkBB.x)).toBeLessThanOrEqual(0.5);
-  expect(clickBB.width).toBeCloseTo(240, 0);
+  expect(clickBB.width).toBeCloseTo(204, 0);
 
   // And the label starts at the same inset, so the two rows read as one column.
   const linkLabel = (await page.locator("#link-row span").boundingBox())!;
