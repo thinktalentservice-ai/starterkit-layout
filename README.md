@@ -415,6 +415,26 @@ The same three selectors also paint `.il-content-area` in `--il-t-surface`, so t
 follows the scheme instead of showing the host's `body` through it. If you add a scheme-dependent
 rule, keep all three in step.
 
+### The sidebar rail is dark in both schemes (1.7.0)
+
+The rail does not follow the scheme. A hand-written block after the generated aliases re-points
+the rail's ink on `:is(.il-sidebar-area, .il-sidebar)`:
+
+| Alias | Reads | Fallback |
+|---|---|---|
+| `--il-t-sidebar-bg` | `--sidebar-bg` | `#0d0f1a` |
+| `--il-t-fg1` | `--sidebar-fg1` | `#ffffff` |
+| `--il-t-fg2` | `--sidebar-fg2` | `#ffffff` |
+| `--il-t-fg-muted` | `--sidebar-fg-muted` | `rgba(255, 255, 255, 0.6)` |
+| `--il-t-border` | `--sidebar-border` | `rgba(255, 255, 255, 0.12)` |
+| `--il-t-hover-overlay` | `--sidebar-hover-overlay` | `rgba(255, 255, 255, 0.08)` |
+
+`@devopsnext/starterkit-theme` 1.7.0 defines those tokens and holds `--sidebar-bg` dark in light
+too. Inside the rail these win over the scheme aliases (own declaration beats inherited); the topbar
+and content column keep the scheme's ink. **Delete any host override** that painted the rail dark
+or set `--il-t-*` on `.il-sidebar-area` — it is now redundant. For a light rail, override
+`--sidebar-bg` and all five `--sidebar-fg*`/`--sidebar-*` ink tokens together.
+
 ### Geometry is `--il-*`, not `--il-t-*`
 
 `--il-sidebar-width` (240px), `--il-mini-sidebar-width` (80px), `--il-topbar-height` (59px) are **not**
