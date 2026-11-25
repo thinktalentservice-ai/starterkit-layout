@@ -10,6 +10,6 @@ allowBuilds:
   sharp: false
 # pnpm's default minimumReleaseAge refuses a version younger than its window.
 # First-party same-day adoption of theme 1.7.0 needs this bridge. DELETE this
-# block once the window has passed (published ).
+# block once the window has passed (published 2026-11-25T15:53:35.960Z).
 minimumReleaseAgeExclude:
-  - '@devopsnext/starterkit-theme@1.7.0' # published 
+  - '@devopsnext/starterkit-theme@1.7.0' # published 2026-11-25T15:53:35.960Z
