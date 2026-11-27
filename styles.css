@@ -160,7 +160,7 @@
    `<Sidebar>` without FullLayout's `.il-sidebar-area` wrapper.
 
    NO HEX HERE. Each line re-points a scheme alias at a GENERATED sidebar alias
-   (`--il-t-sidebar-*`, declared on `.il-shell` by the block above), so the
+   (the generated `--il-t-` sidebar set, declared on `.il-shell` by the block above), so the
    fallback values come from the pinned theme sheet via `pnpm sync:tokens` like
    every other token — never hand-copied. `--il-t-sidebar-bg` needs no line: the
    theme holds `--sidebar-bg` dark in both schemes, so the generated alias
@@ -603,7 +603,7 @@
   justify-content: center;
   font-family: var(--il-t-font-heading);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--il-t-gradient-avatar-ink, #0b0f19);
 }
 
@@ -982,7 +982,7 @@
   justify-content: center;
   font-family: var(--il-t-font-heading);
   font-weight: 600;
-  font-size: 12px;
+  font-size: 11px;
   /* Literal white, not --il-t-gradient-avatar-ink, and not themeable: these
      initials sit on the brand's own avatar gradient, which is a saturated fill
      in every preset and in both schemes. It is ink on a brand colour, the same
@@ -997,7 +997,7 @@
 
 .il-sidebar-username {
   font-family: var(--il-t-font-body);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--il-t-fg2);
   white-space: nowrap;
